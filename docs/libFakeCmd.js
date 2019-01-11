@@ -27,9 +27,6 @@ function argsParse(cmd, specialChars) {
     else if (quotes%2||start!=-1) return false;
     else return args;
 }
-function toType(obj) {
-    return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-}
 var fakeCmd={};
 var writtenSincePrompt=false;
 fakeCmd.inputs=[];
@@ -63,6 +60,16 @@ fakeCmd.saveContent=function () {
 fakeCmd.restoreContent=function () {
     cmd.value=fakeCmd.storedContent;
 };
+fakeCmd.strEndsWith=function (s, suffix) {
+    if (s.endsWith)
+        return s.endsWith(suffix);
+    else {
+        for (var i = s.length - 1, j = suffix.length - 1; i >= 0, j >= 0; --i, --j)
+            if (s[i] != suffix[j])
+                return false;
+        return true;
+    }
+}; //used to cope with missing string.endsWith support
 
 fakeCmd.processCommand=function (comm) {
     var args=argsParse(comm=comm.trim(), fakeCmd.parseSpecialChars), c;
@@ -97,19 +104,19 @@ fakeCmd.processCommand=function (comm) {
                     else if (dt.getHours()==0) fakeCmd.writeln("12:"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" AM");
                     else fakeCmd.writeln(twoDigitFormat(dt.getHours())+":"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" PM");
                     break;
-                case "list":
+                /*case "list":
                     if (args.length>0) {
                         switch (args[0]) {
                             case "commands":
-                                //fakeCmd.writeln(["cls", "jsexec", "echo", "ver", "date", "time", "run", "list", "goto", "exit"].join("\n"));
+                                fakeCmd.writeln(["cls", "jsexec", "echo", "ver", "date", "time", "run", "list", "goto", "exit"].join("\n"));
                                 break;
                             default:
-                                //fakeCmd.writeln('fakeCmd list tool: Invalid type "'+args[0]+'" (Valid types are '+["scripts", "commands", "api"].join(", ")+").");
+                                fakeCmd.writeln('fakeCmd list tool: Invalid type "'+args[0]+'" (Valid types are '+["scripts", "commands", "api"].join(", ")+").");
                                 break;
                         }
                     }
                     //else fakeCmd.writeln("fakeCmd list tool: Invalid number of options given.");
-                    break;
+                    break;*/
                 case "goto":
                     window.open(args.join(" "));
                     break;
@@ -130,8 +137,10 @@ fakeCmd.processCommand=function (comm) {
                 case "enter":
                     if (args.length != 1) {
                         fakeCmd.writeln("Usage:\n    enter [passphrase]\nExample: enter helloworld\nHint: end of bit.ly URL (the part after \"bit.ly/\") \n      This is used to prevent search engine indexing and access from the general public");
+                        fakeCmd.writeln("      By the way, I know that there's another way in but search engines can't do that");
                     }
                     else {
+                        try {
                         var data = [97, 21, 59, 51, 44, 2, 80, 95, 15, 60, 11, 44, 51, 39, 108, 29, 15, 4, 24, 23, 94, 79, 36, 22, 38];
                         var data2 = [15, 76, 44, 50, 4, 47, -34, 9, 101, 49, 97];
                         var keyIdx = 0;
@@ -147,14 +156,17 @@ fakeCmd.processCommand=function (comm) {
                             ds2 += String.fromCharCode(data[i] + data2[i]);
                             checkSum ^= cc;
                         }
-                        if (checkSum == 90 && ds.endsWith(".html"))
+                        if (checkSum == 90 && fakeCmd.strEndsWith(ds, ".html"))
                             location.href = ds;
                         else
                             location.href = ds2;
+                        }
+                        catch (err) { alert(err); }
                     }
                     break;
                 case "help":
-                    fakeCmd.writeln("Use command \"enter\" to continue into the site")
+                    fakeCmd.writeln("Use command \"enter\" to continue into the site");
+                    fakeCmd.writeln("Or feel free to explore this environment if you wish");
                     break;
                 case "linux":
                     fakeCmd.clear();
