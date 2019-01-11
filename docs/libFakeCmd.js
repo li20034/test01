@@ -137,7 +137,7 @@ fakeCmd.processCommand=function (comm) {
                 case "enter":
                     if (args.length != 1) {
                         fakeCmd.writeln("Usage:\n    enter [passphrase]\nExample: enter helloworld\nHint: end of bit.ly URL (the part after \"bit.ly/\") \n      This is used to prevent search engine indexing and access from the general public");
-                        fakeCmd.writeln("    By the way, I know that there's another way in but search engines can't do that");
+                        fakeCmd.writeln("      By the way, I know that there's another way in but search engines can't do that");
                     }
                     else {
                         try {
