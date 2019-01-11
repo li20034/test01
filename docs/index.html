@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+        <title>Browser Detection</title>
+        <style>
+            html, body {
+                margin: 0;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+        </style>
+        <script>
+            function beginDetect() {
+                if (navigator.userAgent.indexOf("Chrome")!=-1&&navigator.userAgent.indexOf("Android")!=-1) document.body.innerHTML='<p>We think that you\'re using Chrome on Android which is <b>NOT</b> supported</p><p>Due to a dirty hack being employed, there may be noticeable input lag</p><p><a href="fakeCMD2.html">Click here to proceed</a> (if this is true)</p><p>If you\'re <b>NOT</b> using Chrome on Android, <a href="fakeCMD1.html">click here for the normal version</a></p><p style="color: black; font-size: 25"><b>Technical details:</b></p><p style="color: black; font-size: 16">keyPress event handler implementation is broken</p><p style="color: black; font-size: 16">Workaround applied: Reading inserted characters from hidden input field in generic input event handler</p>';
+                else location.href="fakeCMD1.html";
+            }
+        </script>
+    </head>
+    <body onload="beginDetect()" style="color: red; font-size: 30;"></body>
+</html>

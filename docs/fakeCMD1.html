@@ -1,0 +1,88 @@
+<html onkeypress="if (!fakeCmd.ignoreKeys) keyPress(event);" onkeydown="if (!fakeCmd.ignoreKeys) keyDown(event);" oncontextmenu="return false" ondragstart="return false">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+        <title>Fake Command Prompt</title>
+        <style>
+            @font-face {
+              font-family: "DOSfont";
+              src: url("DOSfont.ttf");
+            }
+            html, body, textarea#console {
+                background: black;
+                font-family: "DOSfont";
+                font-size: 16;
+                margin: 0;
+                color: rgb(192, 192, 192);
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            textarea#console {
+                resize: none;
+                width: 100%;
+                height: 100%;
+                border: none;
+                outline: none;
+                -webkit-box-shadow: none;
+                -moz-box-shadow: none;
+                box-shadow: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+            }
+            input#hiddenTxt {
+                opacity: 0;
+            }
+        </style>
+        <script src="libFakeCmd.js"></script>
+        <script>
+            var keys={backspace:8, left:37, right:39, up:38, down:40, enter:13};
+            var buffer="";
+            var cmd;
+            var hiddenText;
+            function load_() {
+                cmd=document.getElementById("console");
+                (hiddenText=document.getElementById("hiddenTxt")).focus();
+                fakeCmd.init("FakeCmd> ", true);
+            }
+            function keyDown(event) {
+                if (event.ctrlKey||event.altKey) event.preventDefault();
+                else {
+                    switch (event.which) {
+                        case keys.up:
+                        case keys.down:
+                        case keys.left:
+                        case keys.right:
+                            event.preventDefault();
+                            break;
+                        case keys.backspace:
+                            event.preventDefault();
+                            if (buffer.length) {
+                                cmd.value=cmd.value.substr(0, cmd.value.length-1);
+                                buffer=buffer.substr(0, buffer.length-1);
+                            }
+                            break;
+                        case keys.enter:
+                            event.preventDefault();
+                            fakeCmd.processCommand(buffer);
+                            buffer="";
+                            break;
+                    }
+                }
+            }
+            function keyPress(event) {
+                event.preventDefault();
+                buffer+=String.fromCharCode(event.which);
+                cmd.value+=String.fromCharCode(event.which);
+            }
+        </script>
+    </head>
+    <body onload="load_()" onclick="hiddenText.focus()">
+        <input type="text" id="hiddenTxt" onblur="this.focus()">
+        <textarea readonly id="console"></textarea>
+    </body>
+</html>

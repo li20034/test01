@@ -1,0 +1,98 @@
+<html onkeydown="if (!fakeCmd.ignoreKeys&&ready) keyDown(event);" oncontextmenu="return false" ondragstart="return false">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+        <title>Fake Command Prompt</title>
+        <style>
+            @font-face {
+              font-family: "DOSfont";
+              src: url("DOSfont.ttf");
+            }
+            html, body, textarea#console {
+                background: black;
+                font-family: "DOSfont";
+                font-size: 16;
+                margin: 0;
+                color: rgb(192, 192, 192);
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            textarea#console {
+                resize: none;
+                width: 100%;
+                height: 100%;
+                border: none;
+                outline: none;
+                -webkit-box-shadow: none;
+                -moz-box-shadow: none;
+                box-shadow: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 0;
+            }
+            textarea#hiddenTxt {
+                resize: none;
+                position: fixed;
+                top: -100%;
+                left: -100%;
+                width: 0;
+                height: 0;
+            }
+        </style>
+        <script src="libFakeCmd.js"></script>
+        <script>
+            var keys={left:37, right:39, up:38, down:40, enter:13};
+            var buffer="";
+            var ready=false;
+            var cmd, hiddenText;
+            function load_() {
+                (cmd=document.getElementById("console")).value=(hiddenText=document.getElementById("hiddenTxt")).value="";
+                hiddenText.focus();
+                fakeCmd.init("FakeCmd> ", true);
+                ready=true;
+            }
+            function keyDown(event) {
+                if (event.ctrlKey||event.altKey) event.preventDefault();
+                else {
+                    switch (event.which) {
+                        case keys.up:
+                        case keys.down:
+                        case keys.left:
+                        case keys.right:
+                            event.preventDefault();
+                            break;
+                        case keys.enter:
+                            event.preventDefault();
+                            fakeCmd.processCommand(buffer);
+                            hiddenText.value=buffer="";
+                            break;
+                    }
+                }
+            }
+            function keyPress() {
+                if (fakeCmd.ignoreKeys) hiddenText.value=buffer;
+                else {
+                    if (hiddenText.value.length>buffer.length) {
+                        var c=hiddenText.value.substr(buffer.length);
+                        buffer+=c;
+                        cmd.value+=c;
+                    }
+                    else if (hiddenText.value.length<buffer.length) {
+                        cmd.value = cmd.value.substr(0, cmd.value.length-buffer.length+hiddenText.value.length)
+                        buffer = buffer.substr(0, hiddenText.value.length)
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body onload="load_()" onclick="if (!fakeCmd.ignoreKeys&&ready) hiddenText.focus();">
+        <textarea id="hiddenTxt" onblur="if (!fakeCmd.ignoreKeys&&ready) this.focus();" oninput="if (ready) keyPress();" autocomplete="off"></textarea>
+        <textarea readonly id="console" onfocus="if (fakeCmd.ignoreKeys&&ready) this.blur();" autocomplete="off"></textarea>
+        <p id="page">Not started</p>
+    </body>
+</html>
