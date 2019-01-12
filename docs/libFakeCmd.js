@@ -269,7 +269,7 @@ fakeCmd.processCommand=function (comm) {
                     break;
                 case "bsod":
                     writtenSincePrompt = fakeCmd.ignoreKeys = true;
-                    fakeCmd.prompt = "";
+                    hiddenText.outerHTML = fakeCmd.prompt = "";
                     document.body.style.cursor = cmd.style.cursor = "none";
                     var fsFail = true;
                     /*try {
@@ -298,7 +298,7 @@ fakeCmd.processCommand=function (comm) {
                 case "panic":
                     if (fakeCmd.linux) {
                         writtenSincePrompt = fakeCmd.ignoreKeys = true;
-                        fakeCmd.prompt = "";
+                        hiddenText.outerHTML = fakeCmd.prompt = "";
                         setTimeout(function() { fakeCmd.write(panic_log); }, 500);
                     }
                     else
