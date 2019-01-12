@@ -29,6 +29,7 @@ function argsParse(cmd, specialChars) {
 }
 var fakeCmd={};
 var writtenSincePrompt=false;
+var startDate = new Date();
 fakeCmd.inputs=[];
 fakeCmd.prevPrompt="FakeCmd> ";
 fakeCmd.ignoreKeys=false;
@@ -76,6 +77,7 @@ fakeCmd.processCommand=function (comm) {
     if (!(args===false)) {
         if ((c=args.splice(0, 1)[0].trim()).length) {
             switch (c) {
+                case "clear":
                 case "cls":
                     fakeCmd.clear();
                     break;
@@ -190,6 +192,78 @@ fakeCmd.processCommand=function (comm) {
                 case "ps":
                     if (fakeCmd.linux)
                         fakeCmd.writeln("  PID TTY          TIME CMD\n 1037 pts/2    00:00:00 FakeCmd\n 2031 pts/2    00:00:00 bash\n 9568 pts/2    00:00:00 ps");
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "ls":
+                    if (fakeCmd.linux)
+                        fakeCmd.writeln("Documents  Public  Videos  Downloads  Music  Desktop  Pictures  Templates");
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "ll":
+                    if (fakeCmd.linux) {
+                        fakeCmd.writeln("total 808\n-rw-------  1 user user  38267 Jan 10 22:10 .bash_history");
+                        fakeCmd.writeln("-rw-r--r--  1 user user    220 Apr 16  2016 .bash_logout");
+                        fakeCmd.writeln("-rw-r--r--  1 user user   3637 Apr 16  2016 .bashrc");
+                        fakeCmd.writeln("drwx------ 45 user user   4096 Jan 11 19:00 .cache/");
+                        fakeCmd.writeln("drwx------ 96 user user   4096 Dec 16 22:12 .config/");
+                        fakeCmd.writeln("drwx------  3 root    root      4096 Apr 16  2016 .dbus/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  5 19:14 Desktop/");
+                        fakeCmd.writeln("drwxr-xr-x 12 user user   4096 Oct 14 21:02 Documents/");
+                        fakeCmd.writeln("drwxr-xr-x 23 user user 122880 Jan 10 18:57 Downloads/");
+                        fakeCmd.writeln("drwx------  3 user user   4096 Apr 16  2016 .local/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jun 23  2018 Music/");
+                        fakeCmd.writeln("drwxr-xr-x  3 user user  12288 Jan  7 21:40 Pictures/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Public/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Templates/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  3 19:36 Videos/");
+                        fakeCmd.writeln("-rw-------  1 user user    718 Jan 11 18:49 .Xauthority");
+                        fakeCmd.writeln("-rw-rw-r--  1 user user    130 Jul 20  2016 .xinputrc");
+                        fakeCmd.writeln("-rw-------  1 user user     34 Jan 11 18:49 .xsession-errors");
+                        fakeCmd.writeln("-rw-------  1 user user    138 Jan 10 22:11 .xsession-errors.old");
+                    }
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "man":
+                    if (fakeCmd.linux) {
+                        if (args.length == 0)
+                            fakeCmd.writeln("What manual page do you want?");
+                        else
+                            fakeCmd.writeln("No manual entry for " + args[args.length - 1]);
+                    }
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "uptime":
+                    if (fakeCmd.linux) {
+                        var now = new Date();
+                        var diff = new Date(now - startDate);
+                        var up = " " + twoDigitFormat(diff.getUTCHours()) + ":" + twoDigitFormat(diff.getUTCMinutes());
+                        if (diff.getUTCHours() == 0)
+                            up = diff.getUTCMinutes() + " min";
+                        
+                        fakeCmd.writeln(twoDigitFormat(now.getHours()) + ":" + twoDigitFormat(now.getMinutes()) + ":" + twoDigitFormat(now.getSeconds()) + " up " + up + ",  2 users,  load average: 0.08, 0.14, 0.14");
+                    }
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "dmesg":
+                    if (fakeCmd.linux)
+                        fakeCmd.writeln(dmesg_log);
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "pwd":
+                    if (fakeCmd.linux)
+                        fakeCmd.writeln("/home/user");
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "groups":
+                    if (fakeCmd.linux)
+                        fakeCmd.writeln("user adm dialout cdrom sudo dip plugdev lpadmin");
                     else
                         fakeCmd.writeln('Command "'+c+'" not found');
                     break;
