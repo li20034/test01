@@ -310,6 +310,8 @@ fakeCmd.processCommand=function (comm) {
                     fakeCmd.ignoreKeys = true;
                     hiddenText.outerHTML = fakeCmd.prompt = "";
                     fakeCmd.writeln("0xDEADAF -> rgb(222, 173, 175)");
+                    cmd.style.background = "#deadaf";
+                    cmd.style.color = "#000";
                     setTimeout(function() { location.href = "http://google.ca/search?q=" + encodeURIComponent("#deadaf"); }, 1000);
                     break;
                 default:
