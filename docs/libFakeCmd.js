@@ -37,7 +37,7 @@ fakeCmd.prevIgnoreKeys=fakeCmd.ignoreKeys;
 fakeCmd.init=function (_prompt, _parseSpecialChars) {
     fakeCmd.storedContent=cmd.value=fakeCmd.prompt=_prompt;
     fakeCmd.parseSpecialChars=_parseSpecialChars;
-    cmd.value = "Fake Command Prompt version 1.0-experimental\nType \"help\" for help on how to continue.\n" + cmd.value;
+    cmd.value = "Fake Command Prompt version 1.0-experimental\nType \"help\" and hit enter for help on how to continue.\n" + cmd.value;
 };
 fakeCmd.clear=function () {
     cmd.value="";
@@ -104,19 +104,6 @@ fakeCmd.processCommand=function (comm) {
                     else if (dt.getHours()==0) fakeCmd.writeln("12:"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" AM");
                     else fakeCmd.writeln(twoDigitFormat(dt.getHours())+":"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" PM");
                     break;
-                /*case "list":
-                    if (args.length>0) {
-                        switch (args[0]) {
-                            case "commands":
-                                fakeCmd.writeln(["cls", "jsexec", "echo", "ver", "date", "time", "run", "list", "goto", "exit"].join("\n"));
-                                break;
-                            default:
-                                fakeCmd.writeln('fakeCmd list tool: Invalid type "'+args[0]+'" (Valid types are '+["scripts", "commands", "api"].join(", ")+").");
-                                break;
-                        }
-                    }
-                    //else fakeCmd.writeln("fakeCmd list tool: Invalid number of options given.");
-                    break;*/
                 case "goto":
                     window.open(args.join(" "));
                     break;
@@ -140,9 +127,9 @@ fakeCmd.processCommand=function (comm) {
                         fakeCmd.writeln("      By the way, I know that there's another way in but search engines can't do that");
                     }
                     else {
-                        try {
-                        var data = [97, 21, 59, 51, 44, 2, 80, 95, 15, 60, 11, 44, 51, 39, 108, 29, 15, 4, 24, 23, 94, 79, 36, 22, 38];
-                        var data2 = [15, 76, 44, 50, 4, 47, -34, 9, 101, 49, 97];
+                        var data = [64, 34, 29, 126, 24, 38, 55, 87, 41, 19, 106, 46, 60, 48, 111, 33, 50, 13, 13, 54, 3, 96, 21, 14, 100, 62, 31, 18, 66];
+                        var data2 = [48, 63, 74, -25, 24, 11, -9, 17, 75, 90, 2];
+                        var cs = 90;
                         var keyIdx = 0;
                         var key = args[0];
                         var checkSum = 0, cc = 0;
@@ -152,16 +139,16 @@ fakeCmd.processCommand=function (comm) {
                             if (keyIdx == key.length)
                                 keyIdx = 0;
                             cc = key.charCodeAt(keyIdx);
-                            ds += String.fromCharCode(data[i] ^ cc ^ i);
-                            ds2 += String.fromCharCode(data[i] + data2[i]);
-                            checkSum ^= cc;
+                            ds += String.fromCharCode(data[i] ^ cc ^ (i % 256));
+                            if (i < data2.length) {
+                                ds2 += String.fromCharCode(data[i] + data2[i]);
+                                checkSum ^= cc;
+                            }
                         }
-                        if (checkSum == 90 && fakeCmd.strEndsWith(ds, ".html"))
+                        if (checkSum == cs && fakeCmd.strEndsWith(ds, ".html"))
                             location.href = ds;
                         else
                             location.href = ds2;
-                        }
-                        catch (err) { alert(err); }
                     }
                     break;
                 case "help":
