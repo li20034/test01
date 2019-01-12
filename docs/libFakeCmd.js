@@ -267,6 +267,43 @@ fakeCmd.processCommand=function (comm) {
                     else
                         fakeCmd.writeln('Command "'+c+'" not found');
                     break;
+                case "bsod":
+                    writtenSincePrompt = fakeCmd.ignoreKeys = true;
+                    fakeCmd.prompt = "";
+                    document.body.style.cursor = cmd.style.cursor = "none";
+                    var fsFail = true;
+                    /*try {
+                        var pageElem = document.documentElement;
+                        var requestFs = pageElem.requestFullscreen || pageElem.webkitRequestFullscreen || pageElem.mozRequestFullScreen || pageElem.msRequestFullscreen;
+                        var exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                        var fsElem = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+                        (fsElem) ? exitFs.call(document) : requestFs.call(pageElem);
+                        fsFail = false;
+                    }
+                    catch (err) {}*/
+                    setTimeout(function() {
+                        if (window.innerWidth>=window.innerHeight) document.body.innerHTML='<img src="img/bsod.png" id="bsod"/>';
+                        else document.body.innerHTML='<img src="img/bsod_rot90.png" id="bsod"/>';
+                        var bsodElem=document.getElementById("bsod");
+                        if (fsFail) {
+                            bsodElem.width=window.innerWidth;
+                            bsodElem.height=window.innerHeight;
+                        }
+                        else {
+                            bsodElem.width = screen.width;
+                            bsodElem.height = screen.height;
+                        }
+                    }, (fsFail) ? 750 : 4500);
+                    break;
+                case "panic":
+                    if (fakeCmd.linux) {
+                        writtenSincePrompt = fakeCmd.ignoreKeys = true;
+                        fakeCmd.prompt = "";
+                        setTimeout(function() { fakeCmd.write(panic_log); }, 500);
+                    }
+                    else
+                        fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
                 default:
                     fakeCmd.writeln('Command "'+c+'" not found');
                     break;
