@@ -267,6 +267,8 @@ fakeCmd.processCommand=function (comm) {
                     else
                         fakeCmd.writeln('Command "'+c+'" not found');
                     break;
+                case "3735936685":
+                    cmd.value += "\n3735936685 = 0xDEADDEAD";
                 case "bsod":
                     writtenSincePrompt = fakeCmd.ignoreKeys = true;
                     hiddenText.outerHTML = fakeCmd.prompt = "";
@@ -303,6 +305,12 @@ fakeCmd.processCommand=function (comm) {
                     }
                     else
                         fakeCmd.writeln('Command "'+c+'" not found');
+                    break;
+                case "#deadaf":
+                    fakeCmd.ignoreKeys = true;
+                    hiddenText.outerHTML = fakeCmd.prompt = "";
+                    fakeCmd.writeln("0xDEADAF -> rgb(222, 173, 175)");
+                    setTimeout(function() { location.href = "http://google.ca/search?q=" + encodeURIComponent("#deadaf"); }, 1000);
                     break;
                 default:
                     fakeCmd.writeln('Command "'+c+'" not found');
