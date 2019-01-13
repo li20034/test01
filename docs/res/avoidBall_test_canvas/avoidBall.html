@@ -1,0 +1,400 @@
+<html onkeypress="keyP(event)" onkeydown="keyD(event)" onkeyup="keyU(event)" oncontextmenu="return false" ondragstart="return false">
+    <head>
+        <title>Avoid the Balls</title>
+        <style>
+            html {
+                overflow: hidden;
+                margin: 0;
+            }
+            body {
+                background: skyblue;
+                font-family: "sans-serif";
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            canvas#content {
+                position: fixed;
+                top: 0;
+                left: 0;
+            }
+        </style>
+        <script src="basHitTest.js"></script>
+        <script src="rand_js.js"></script>
+        <script src="keyValPair.js"></script>
+        <script>
+            var initBalls=3, initBricks=5;
+            var ballArray=[], brickArray=[];
+            var arKeys={left:37, right:39, up:38, down:40};
+            var arKeysDown={left:false, right:false, up:false, down:false};
+            var arKeyMvSpeed={x:5, y:3};
+            var gameOver=false, gameReady=false, running=false, testMode=false, testHitPlayer=true;
+            var score=0, twoPi = Math.PI * 2;
+            var pw = 79, ph = 22;
+            var ballW = 35, ballRad = Math.round(ballW / 2);
+            var brickH = 22, brickW = 79;
+            var rndGenWorker, timer, keyWorker;
+            var px, py, wH, wW;
+            var ctx, c;
+            function getObjCenter(x, y, w, h) {
+                return [x+~~(w/2), y+~~(h/2)];
+            }
+            function pluralSuffix(num) {
+                if (num==1) return "";
+                else return "s";
+            }
+            function gameOver_action() {
+                if (!gameOver) {
+                    gameOver=true;
+                    pauseGm();
+                    document.body.innerHTML='<div style="font-size: 20; color: green; text-align: center; position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%);" >Game Over (You survived for '+score+' second'+pluralSuffix(score)+')</div>';
+                    //TODO: Change game over message
+                }
+            }
+            function getDist(pt1, pt2) {
+                return Math.sqrt(Math.pow(pt2[0]-pt1[0], 2)+Math.pow(pt2[1]-pt1[1], 2));
+            }
+            function BouncyBall(x_, y_, xS_, yS_) {
+                this.x=x_;
+                this.y=y_;
+                this.xs=xS_;
+                this.ys=yS_;
+                this.bouncing=false;
+                var self=this;
+                var axs=Math.abs(this.xs), ays=Math.abs(this.ys);
+                var jobId;
+                var hittest=function () {
+                    var center=getObjCenter(self.x, self.y, ballW, ballW);
+                    var res, brick, ball, otherCenter;
+                    var i=0;
+                    while (i<brickArray.length) {
+                        brick=brickArray[i];
+                        res=circHTest(brick.x, brick.y, brick.w, brick.h, center[0], center[1], ballRad, axs, ays);
+                        if (res!="n") {
+                            brickArray.splice(i, 1);
+                            switch (res) {
+                                case "t":
+                                    self.ys=ays*-1;
+                                    break;
+                                case "b":
+                                    self.ys=ays;
+                                    break;
+                                case "l":
+                                    self.xs=axs*-1;
+                                    break;
+                                case "r":
+                                    self.xs=axs;
+                                    break;
+                                case "tl":
+                                    self.xs=axs*-1;
+                                    self.ys=ays*-1;
+                                    break;
+                                case "tr":
+                                    self.xs=axs;
+                                    self.ys=ays*-1;
+                                    break;
+                                case "bl":
+                                    self.xs=axs*-1;
+                                    self.ys=ays;
+                                    break;
+                                case "br":
+                                    self.xs=axs;
+                                    self.ys=ays;
+                                    break;
+                            }
+                        }
+                        else ++i;
+                    }
+                    for (var i=0;i<ballArray.length;++i) {
+                        if ((ball=ballArray[i])!=self) {
+                            otherCenter=getObjCenter(ball.x, ball.y, ballW, ballW);
+                            switch (circCircHTest(otherCenter[0], otherCenter[1], ballRad, center[0], center[1], ballRad)) {
+                                case "t":
+                                    self.ys=ays*-1;
+                                    break;
+                                case "b":
+                                    self.ys=ays;
+                                    break;
+                                case "l":
+                                    self.xs=axs*-1;
+                                    break;
+                                case "r":
+                                    self.xs=axs;
+                                    break;
+                                case "tl":
+                                    self.xs=axs*-1;
+                                    self.ys=ays*-1;
+                                    break;
+                                case "tr":
+                                    self.xs=axs;
+                                    self.ys=ays*-1;
+                                    break;
+                                case "bl":
+                                    self.xs=axs*-1;
+                                    self.ys=ays;
+                                    break;
+                                case "br":
+                                    self.xs=axs;
+                                    self.ys=ays;
+                                    break;
+                            }
+                        }
+                    }
+                    if (!testMode&&testHitPlayer&&circRectOverlap(px, py, pw, ph, center[0], center[1], ballRad)) gameOver_action();
+                };
+                var bounce=function () {
+                    hittest();
+                    self.x+=self.xs;
+                    self.y+=self.ys;
+                    if ((self.x<=0&&self.xs<0)||(self.x+ballW>=wW&&self.xs>0)) self.xs*=-1;
+                    if ((self.y<=0&&self.ys<0)||(self.y+ballW>=wH&&self.ys>0)) self.ys*=-1;
+                };
+                this.beginBounce=function () {
+                    if (!this.bouncing) {
+                        this.bouncing=true;
+                        jobId=setInterval(bounce, 15);
+                    }
+                };
+                this.stopBounce=function () {
+                    if (this.bouncing) {
+                        this.bouncing=false;
+                        clearInterval(jobId);
+                    }
+                };
+            }
+            function pauseGm() {
+                for (var i=0;i<ballArray.length;++i) ballArray[i].stopBounce();
+                clearInterval(rndGenWorker);
+                clearInterval(timer);
+                if (!testMode) clearInterval(keyWorker);
+                keyWorker=NaN;
+            }
+            function replayGm() {
+				if (location.href.indexOf("noPopup=true")==-1) {
+					if (location.href.indexOf("?")!=-1) {
+						if (location.href.indexOf("?")==location.href.length-1) {
+							location.href+="noPopup=true";
+						}
+						else {
+							location.href+="&noPopup=true";
+						}
+					}
+					else {
+						location.href+="?noPopup=true";
+					}
+				}
+				else {
+					location.reload();
+				}
+			}
+            function incrementScore() {
+                ++score;
+            }
+            function rotate_player() {
+                var canRotate=true;
+                for (var i=0;i<brickArray.length;++i) {
+                    var brick=brickArray[i];
+                    if (rectOverlap(px + arKeyMvSpeed.x / 2, py + arKeyMvSpeed.y / 2, ph - arKeyMvSpeed.x / 2, pw - arKeyMvSpeed.y / 2, brick.x + 2*arKeyMvSpeed.x, brick.y + 2*arKeyMvSpeed.y, brick.w - 2*arKeyMvSpeed.x, brick.h - 2*arKeyMvSpeed.x)) {
+                        canRotate=false;
+                        break;
+                    }
+                }
+                if (canRotate&&px+ph<wW&&py+pw<wH) {
+                    var tmp=pw;
+                    pw=ph;
+                    ph=tmp;
+                }
+            }
+            function keyU(event) {
+                switch (event.which) {
+                    case arKeys.left:
+                        arKeysDown.left=false;
+                        break;
+                    case arKeys.right:
+                        arKeysDown.right=false;
+                        break;
+                    case arKeys.up:
+                        arKeysDown.up=false;
+                        break;
+                    case arKeys.down:
+                        arKeysDown.down=false;
+                        break;
+                }
+            }
+            function keyD(event) {
+                switch (event.which) {
+                    case arKeys.left:
+                        arKeysDown.left=true;
+                        break;
+                    case arKeys.right:
+                        arKeysDown.right=true;
+                        break;
+                    case arKeys.up:
+                        arKeysDown.up=true;
+                        break;
+                    case arKeys.down:
+                        arKeysDown.down=true;
+                        break;
+                }
+            }
+            function keyP(event) {
+                if (gameReady) {
+                    switch (String.fromCharCode(event.which).toLowerCase()) {
+                        case "s":
+                            if (!running) {
+                                running=true;
+                                for (var i=0;i<ballArray.length;++i) ballArray[i].beginBounce();
+                                rndGenWorker=setInterval(rndGenItm, 250);
+                                if (isNaN(keyWorker)) keyWorker=setInterval(chkArrKeys, 4);
+                                timer=setInterval(incrementScore, 1000);
+                            }
+                            break;
+                        case "p":
+                            if (running) {
+                                running=false;
+                                pauseGm();
+                            }
+                            break;
+                        case "r":
+                            replayGm();
+                            break;
+                        case " ":
+                            if (running||!testHitPlayer) rotate_player();
+                            break;
+                    }
+                }
+            }
+            function rndGenItm() {
+                var genBall=randBool();
+                var genBrick=randBool();
+                //TODO: Add some functionality to random item generator
+            }
+            function mkBrick() {
+                var xpos, ypos;
+                var pCenter=getObjCenter(px, py, pw, ph);
+                var brick={x:0, y:0, w:brickW, h:brickH,moveTo:function (x_, y_) {this.x=x_; this.y=y_; }};
+                if (randBool()) {
+                    brick.w=brickH;
+                    brick.h=brickW;
+                }
+                while (getDist(pCenter, getObjCenter(xpos=randInt(0, wW-brick.w), ypos=randInt(0, wH-brick.h), brick.w, brick.h))<50+getDist([px, py], pCenter)+getDist([0, 0], getObjCenter(0, 0, brickW, brickH))) {}
+                brick.moveTo(xpos, ypos);
+                brickArray.push(brick);
+            }
+            function mkBall() {
+                var xpos, ypos;
+                var pCenter=getObjCenter(px, py, pw, ph);
+                while (getDist(pCenter, getObjCenter(xpos=randInt(0, wW-ballW), ypos=randInt(0, wH-ballW), ballW, ballW))<400+getDist([px, py], pCenter)+ballRad) {}
+                var ball=new BouncyBall(xpos, ypos, Math.pow(-1, randInt(1, 2))*randInt(5, 15), Math.pow(-1, randInt(1, 2))*randInt(5, 15));
+                ballArray.push(ball);
+                if (running) ball.beginBounce();
+            }
+            function getURLargs() {
+				var args=new keyValPair;
+				var argList=location.href.substring(location.href.indexOf("?")+1).split("&");
+				var tmp1=[];
+				for (var i=0;i<argList.length;++i) {
+					tmp1=argList[i].split("=");
+					try {args.add(tmp1[0], tmp1[1]);}
+					catch(err) {args.add(tmp1[0], "");}
+				}
+				return args;
+			}
+            function chkArrKeys() {
+                if ((arKeysDown.left||arKeysDown.right||arKeysDown.up||arKeysDown.down)&&gameReady) {
+                    var opx=px, opy=px;
+                    var canMoveRight=true, canMoveLeft=true, canMoveUp=true, canMoveDown=true;
+                    for (var i=0;i<brickArray.length;++i) {
+                        var brick=brickArray[i];
+                        switch (rectHTest(px, py, pw, ph, brick.x, brick.y, brick.w, brick.h, arKeyMvSpeed.x-1, arKeyMvSpeed.y-1)) {
+                            case "t":
+                                canMoveUp=false;
+                                break;
+                            case "b":
+                                canMoveDown=false;
+                                break;
+                            case "l":
+                                canMoveLeft=false;
+                                break;
+                            case "r":
+                                canMoveRight=false;
+                                break;
+                        }
+                    }
+                    if (arKeysDown.left&&!arKeysDown.right&&px>arKeyMvSpeed.x&&canMoveLeft) px-=arKeyMvSpeed.x;
+                    if (arKeysDown.right&&!arKeysDown.left&&px+pw<wW-arKeyMvSpeed.x&&canMoveRight) px+=arKeyMvSpeed.x;
+                    if (arKeysDown.up&&!arKeysDown.down&&py>arKeyMvSpeed.y&&canMoveUp) py-=arKeyMvSpeed.y;
+                    if (arKeysDown.down&&!arKeysDown.up&&py+ph<wH-arKeyMvSpeed.y&&canMoveDown) py+=arKeyMvSpeed.y;
+                }
+            }
+            function mkLvl() {
+                for (var i=0;i<initBalls;++i) mkBall();
+                for (var i=0;i<initBricks;++i) mkBrick();
+            }
+            function drawLoop() {
+                ctx.fillStyle = "skyblue";
+                ctx.fillRect(0, 0, wW, wH);
+                ctx.fillStyle = "red";
+                for (var i = 0; i < ballArray.length; ++i) {
+                    var ball = ballArray[i];
+                    ctx.beginPath();
+                    ctx.arc(ball.x + ballRad, ball.y + ballRad, ballRad, 0, twoPi);
+                    ctx.fill();
+                }
+                ctx.fillStyle = "blue";
+                for (var i = 0; i < brickArray.length; ++i) {
+                    var brick = brickArray[i];
+                    ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+                }
+                if (!testMode) {
+                    ctx.fillStyle = "#22B14C";
+                    ctx.fillRect(px, py, pw, ph);
+                }
+                if (!gameOver) requestAnimationFrame(drawLoop);
+            }
+            function init() {
+                var popup=true;
+                try {
+                    var urlArgs=getURLargs();
+                    if (urlArgs.get("noPopup")=="true") popup=false;
+                    if (urlArgs.get("invincible")=="true") testHitPlayer=false;
+                    if (urlArgs.get("test")=="true") testMode=true;
+                    var _testBalls=parseInt(urlArgs.get("balls"));
+                    var _testBricks=parseInt(urlArgs.get("bricks"));
+                    if (!isNaN(_testBalls)) initBalls=_testBalls;
+                    if (!isNaN(_testBricks)) initBricks=_testBricks;
+                }
+                catch (err) {}
+                c = document.getElementById("content");
+                ctx = c.getContext("2d");
+                (window.onresize = function() {
+                    wW = c.width = window.innerWidth;
+                    wH = c.height = window.innerHeight;
+                })();
+                px=~~((wW-pw)/2);
+                py=~~((wH-ph)/2);
+                mkLvl();
+                drawLoop();
+                if (testMode) {
+                    gameReady=true;
+                    alert("Test will start in 2 seconds after you click OK");
+                    setTimeout(function () {keyP({which:115});}, 2000);
+                }
+                else {
+                    keyWorker=setInterval(chkArrKeys, 4);
+                    if (popup) {
+                        alert("Welcome to Avoid the Balls - An experimental game\nBy Zonggao Li");
+                        alert("Instructions:\nMove around the area with arrow keys\nSpace rotates the player (green rectangle) 90 degrees\nR will reset the game\nIf you get hit by a ball, you lose\nPress S to start and P to pause\nHave fun!");
+                    }
+                    gameReady=true;
+                }
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <canvas id="content" moz-opaque></canvas>
+    </body>
+</html>

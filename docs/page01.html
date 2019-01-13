@@ -5,20 +5,61 @@
             html, body {
                 font-family: sans-serif;
             }
+            /*a { 
+                color: blue;
+            }*/
         </style>
+        <script>
+            function iOSLink(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                var wnd = window.open("", "_blank", "width=250, height=250");
+				var x_ = ~~(Math.random() * (screen.availWidth - 254));
+				var y_ = ~~(Math.random() * (screen.availHeight - 254));
+				wnd.moveTo(x_, y_);
+				wnd.document.write('<html><head><title>iOS Stinks</title><style>html, body { margin: 0; } img { width: 100%; height: 100%; }</style><script src="res/popupCode.js"></script' + '>' + '</head><body><img src="img/ios.png"></img></body></html>');
+                                
+                return false;
+            }
+        </script>
     </head>
     <body>
         <h1>Welcome</h1>
-        <h5>This page is not complete yet</h5>
+        <h3>This page is not complete yet. Why not try the <a href="page02.html">next page</a>?</h3>
         <p>If you don't know why you are here, you shouldn't be</p>
         <p>Anyways, here's a list of interesting/ridiculous things on the internet</p>
         <ul>
-            <li><a href="http://reactos.com">ReactOS Project</a></li>
-            <li><a href="http://getpaint.net">Paint.NET</a>, an excellent free image editor</li>
-            <li><a href="https://hackaday.com/2018/12/17/hacker-makes-a-flawless-booby-trap-strikes-back-against-package-thieves/">How to deal with package thiefs</a></li>
-            <li>Very fun <a href="https://hackaday.com/2018/02/18/turning-a-car-into-a-computer-mouse/">computer mouse idea</a></li>
-            <li><a href="https://www.amazon.ca/Accoutrements-11761-Yodelling-Pickle/dp/B0010VS078">Yodelling pickle on Amazon</a></li>
-            <li><a href="https://www.amazon.ca/Arificial-Oranges-Lifelike-Tangerines-Decorations/dp/B075RZ51LJ/">Fake oranges</a>, something <a href="http://www.pauldavidson.net/2005/12/22/todays-thoughts-on-fake-fruit/">nobody should buy</a></li>
+            <li>Nice Software</li>
+            <ul>
+                <li><a href="http://reactos.com">ReactOS Project</a></li>
+                <li><a href="http://getpaint.net">Paint.NET</a>, an excellent free image editor</li>
+                <li><a href="https://www.audacityteam.org">Audacity</a>, an easy to use free audio editor</li>
+                <li><a href="https://kdenlive.org">Kdenlive</a>, open source "cross platform" video editor</li>
+                <li><a href="http://lubuntu.me">Lubuntu</a>, a lightweight Linux distro</li>
+                <li><a href="https://notepad-plus-plus.org">Notepad++</a>: please stop using Notepad</li>
+                <li><a href="http://7-zip.org">7-zip</a>: please stop using WinRAR</li>
+                <li><a href="http://brackets.io">Brackets</a>, the best free HTML/JavaScript IDE</li>
+                <ul>
+                    <li>This collection of web demos/pages (including <a href="index.html">FakeCmd</a>) was written with the help of Brackets</li>
+                </ul>
+            </ul>
+            <li>Interesting/Ludicrous Things</li>
+            <ul>
+                <li><a href="https://hackaday.com/2018/12/17/hacker-makes-a-flawless-booby-trap-strikes-back-against-package-thieves/">How to deal with package thiefs</a></li>
+                <li>Very fun <a href="https://hackaday.com/2018/02/18/turning-a-car-into-a-computer-mouse/">computer mouse idea</a></li>
+                <li><a href="https://www.amazon.ca/Accoutrements-11761-Yodelling-Pickle/dp/B0010VS078">Yodelling pickle on Amazon</a></li>
+                <li><a href="https://www.amazon.ca/Arificial-Oranges-Lifelike-Tangerines-Decorations/dp/B075RZ51LJ/">Fake oranges</a>, something <a href="http://www.pauldavidson.net/2005/12/22/todays-thoughts-on-fake-fruit/">nobody should buy</a></li>
+                <li>Why are people <a href="https://www.nytimes.com/2018/12/31/us/waymo-self-driving-cars-arizona-attacks.html">attacking self driving cars</a>?</li>
+                <li>My opinions on <a href="http://apple.com/ca/ios" onclick="iOSLink(event);">iOS</a> (ensure that <a href="javascript:void" onclick="alert('Success')">JavaScript works</a>)</li>
+                <li>How not to <a href="https://www.youtube.com/watch?v=61FaYVGVY_I">make an alarm clock</a></li>
+                <li>How not to <a href="https://www.youtube.com/watch?v=-gD8pwa6ozQ">make salsa</a></li>
+                <li>Very misleading <a href="https://www.cnet.com/news/how-smelling-farts-could-save-your-life/"?>news article about flatulence</a></li>
+                <li>What lies within the confines of <a href="http://idiot.org">idiot.org</a>?</li>
+                <li>Pumpkin induced <a href="http://hackaday.com/2015/11/04/shoot-down-drones-with-pumpkin-cannons/">property damage</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Moron">Genius</a> makes a <a href="https://www.cbc.ca/news/canada/calgary/calgary-s-balloon-man-describes-soaring-over-city-in-lawn-chair-1.3139591">dangerous DIY hot air balloon</a></li>
+                <li><a href="https://www.thenophone.com/collections/shop/products/1-nophone-and-1-free-nophone-air">NoPhone</a></li>
+            </ul>
         </ul>
     </body>
 </html>

@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>POV Test</title>    
+        <style>
+            html, body {
+                overflow: hidden;
+                margin: 0;
+            }
+        </style>
+        <script>
+            var bool1 = false;
+            //var delay = 1000/60;
+            var c, ctx;
+            function init() {
+                var count = document.getElementById("count");
+                c = document.getElementById("c");
+                ctx = c.getContext("2d");
+                (window.onresize = function() {
+                    c.style.width = window.innerWidth;
+                    c.style.height = window.innerHeight;
+                })();
+                for (var i = 0; i <= 10; ++i) {
+                    setTimeout((function(i) {
+                        return function() {
+                            if (i == 10) {
+                                document.body.removeChild(document.getElementById("warn"));
+                                colorTest();
+                            }
+                            else count.innerHTML = 10 - i; 
+                        }
+                    })(i), i*1000);
+                }
+            }
+            function colorTest() {
+                //var s = (new Date()).getTime();
+                if (bool1) {
+                    ctx.fillStyle = "red";
+                    bool1 = false;
+                }
+                else {
+                    ctx.fillStyle = "blue";
+                    bool1 = true;
+                }
+                ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                //setTimeout(colorTest, delay + s - (new Date()).getTime());
+                requestAnimationFrame(colorTest); //more performant way to hit VSync rate
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <div id="warn">
+            <h1 style="color: red;">Seizure warning</h1>
+            <h2>If you suffer from photosensitive epilepsy, please close this within <b id="count" style="color: red;"></b> seconds</h2>
+            <h1>Information</h1>
+            <h2>This test demonstrates persistence of vision</h2>
+            <h2>By alternating between <b style="color: red;">red</b> and <b style="color: blue;">blue</b>, it should appear to be <b style="color: magenta;">magenta</b></h2>
+            <h2>However, when the display is moved rapidly, the distinct colors become visible</h2>
+            <h2>In order to achieve that, it rapidly changes the color of the webpage at 60fps</h2>
+        </div>
+        <canvas id="c"></canvas>
+    </body>
+</html>

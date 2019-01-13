@@ -1,0 +1,121 @@
+<html>
+    <head>
+        <title> HTML Color Selector </title>
+        <style>
+            body {
+                background: skyblue;
+                text-align: center;
+            }
+            textarea#colorP {
+                resize: none;
+                color: black;
+                background: black;
+                height: 250;
+                width: 250;
+                border: 5px solid white;
+            }
+            input.colorSliders {
+                width: 500;
+            }
+        </style>
+        <script>
+            var r;
+            var g;
+            var b;
+            function update() {
+                document.getElementById("redNum").value = document.getElementById("redVal").value;
+                document.getElementById("blueNum").value = document.getElementById("blueVal").value;
+                document.getElementById("greenNum").value = document.getElementById("greenVal").value;
+                r=document.getElementById("redVal").value;
+                g=document.getElementById("greenVal").value;
+                b=document.getElementById("blueVal").value;
+                display(makeColor(r, g, b), rgb2hex(r, g, b));
+            }
+            function update2() {
+                if (isNaN(parseInt(document.getElementById("redNum").value))) {
+                    alert("Invalid Red value");
+                    document.getElementById("redNum").value=0;
+                }
+                if (isNaN(parseInt(document.getElementById("greenNum").value))) {
+                    alert("Invalid Green value");
+                    document.getElementById("greenNum").value=0;
+                }
+                if (isNaN(parseInt(document.getElementById("blueNum").value))) {
+                    document.getElementById("blueNum").value=0;
+                    alert("Invalid Blue value");
+                    document.getElementById("blueNum").value=0;
+                }
+                if (document.getElementById("redNum").value=="") {
+                    alert("Invalid Red value");
+                    document.getElementById("redNum").value=0;
+                }
+                if (document.getElementById("greenNum").value=="") {
+                    alert("Invalid Green value");
+                    document.getElementById("greenNum").value=0;
+                }
+                if (document.getElementById("blueNum").value=="") {
+                    alert("Invalid Blue value");
+                    document.getElementById("blueNum").value=0;
+                }
+                if (parseInt(document.getElementById("redNum").value) < 0) {
+                    alert("Invalid Red value");
+                    document.getElementById("redNum").value=0;
+                }
+                if (parseInt(document.getElementById("greenNum").value) < 0) {
+                    alert("Invalid Green value");
+                    document.getElementById("greenNum").value=0;
+                }
+                if (parseInt(document.getElementById("blueNum").value) < 0) {
+                    alert("Invalid Blue value");
+                    document.getElementById("blueNum").value=0;
+                }
+                if (parseInt(document.getElementById("redNum").value) > 255) {
+                    alert("Invalid Red value");
+                    document.getElementById("redNum").value=0;
+                }
+                if (parseInt(document.getElementById("greenNum").value) > 255) {
+                    alert("Invalid Green value");
+                    document.getElementById("greenNum").value=0;
+                }
+                if (parseInt(document.getElementById("blueNum").value) > 255) {
+                    alert("Invalid Blue value");
+                    document.getElementById("blueNum").value=0;
+                }
+                document.getElementById("redVal").value = document.getElementById("redNum").value;
+                document.getElementById("blueVal").value = document.getElementById("blueNum").value;
+                document.getElementById("greenVal").value = document.getElementById("greenNum").value;
+                r=document.getElementById("redVal").value;
+                g=document.getElementById("greenVal").value;
+                b=document.getElementById("blueVal").value;
+                display(makeColor(r, g, b), rgb2hex(r, g, b));
+            }
+            function rgb2hex(r, g, b) {
+                var tmp="0123456789ABCDEF";
+                return tmp[~~(r/16)]+tmp[r%16]+tmp[~~(g/16)]+tmp[g%16]+tmp[~~(b/16)]+tmp[b%16];
+            }
+            function makeColor(red, green, blue) {
+                return "rgb(" + red + ", " + green + ", " + blue + ")";
+            }
+            function display(rgb, hex) {
+                document.getElementById("colorP").style.background=rgb;
+                document.getElementById("colorP").style.color=rgb;
+                document.getElementById("out").innerHTML="RGB Value = <b>" + rgb + "</b>, Hex value = <b>#"+hex+"</b>";
+                document.getElementById("out2").innerHTML="This value can be used directly with CSS color attributes. (eg. {background: <b>" + rgb + "</b>})"
+            }
+        </script>
+    </head>
+    <body>
+        <textarea readonly id="colorP"></textarea>
+        <p>
+            <b style="color: red">R:</b> <input type="range" min="0" max="255" step="1" value="0" id="redVal" class="colorSliders" oninput="update()"/> <input type="text" id="redNum" value="0" oninput="update2()"/> <b style="color: red">(Red)</b>
+        </p>
+        <p>
+            <b style="color: green">G:</b> <input type="range" min="0" max="255" step="1" value="0" id="greenVal" class="colorSliders" oninput="update()"/> <input type="text" id="greenNum" value="0" oninput="update2()"/> <b style="color: green">(Green)</b>
+        </p>
+        <p>
+            <b style="color: blue">B:</b> <input type="range" min="0" max="255" step="1" value="0" id="blueVal" class="colorSliders" oninput="update()"/> <input type="text" id="blueNum" value="0" oninput="update2()"/> <b style="color: blue">(Blue)</b>
+        </p>
+        <p id="out">RGB Value = <b>rgb(0, 0, 0)</b>, Hex value = <b>#000000</b></p>
+        <p id="out2">This value can be used directly with CSS color attributes. (eg. {background: <b>rgb(0, 0, 0)</b>})</p>
+    </body>
+</html>

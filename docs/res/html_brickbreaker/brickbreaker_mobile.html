@@ -1,0 +1,482 @@
+<html>
+	<head>
+		<title>HTML BrickBreaker Test</title>
+		<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+		<link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
+		<style>
+            html, body, p.samples {
+                overflow: hidden;
+            }
+			body {
+				background: skyblue;
+			}
+			p.samples {
+				visibility: hidden;
+			}
+			p.gameInfo, p.msg {
+				position: fixed;
+				bottom: 5;
+				font-size: 20;
+				color: blue;
+				background: white;
+			}
+			p.gameInfo {
+				left: 20;
+			}
+			p.msg {
+				right: 20;
+			}
+			input.s_pBtn {
+                position: fixed;
+                bottom: 5;
+                left: 5;
+                font-size: 11;
+            }
+		</style>
+		<script src="basHitTest.js"></script>
+        <script src="keyValPair.js"></script>
+		<script src="rand_js.js"></script>
+		<script>
+			var mX;
+			var mY;
+			var keyP;
+			var x_;
+			var y_;
+			var img2Width;
+			var img2Height;
+			var img1x;
+			var img1y;
+			var tmp1;
+			var origX;
+			var origY;
+			var sndPl;
+			var tmp2;
+			var hitPos;
+			var bounceAngle;
+			var brickWidth;
+			var brickHeight;
+			var elemImg1;
+			var elemImg2;
+			var elemBricks;
+			var elemGinf;
+			var elemMsg;
+			var pageWidth=window.innerWidth;
+			var pageHeight=window.innerHeight;
+			var x_speed=6;
+			var y_speed=6;
+			var bricksX=[];
+			var bricksY=[];
+			var loop=0;
+			var numOfBricks=65;
+			var bricksLeft=numOfBricks;
+			var lives=3;
+			var started=false;
+			var colorList=["green", "orange", "pink", "yellow", "purple", "skyblue", "lightgreen", "lime", "grey", "white", "turquoise", "black", "darkred", "peach", "gold", "cyan", "magenta", "brown"];
+			var paused=false;
+			var warned1Life=false;
+			var origYSpeed=y_speed;
+			var origXSpeed=x_speed;
+			var origLives=lives;
+			var origBricksLeft=bricksLeft;
+			var musicPlaying=false;
+			var gameOver=false;
+			var running=false;
+			function effects() {
+				document.body.style.background=getRndItm(colorList);
+			}
+            function mvImg(img_, xpos, ypos) {
+				if (img_.style.position!="fixed") {
+					img_.style.position="fixed";
+				}
+				img_.style.top=ypos;
+				img_.style.left=xpos;
+			}
+			function mkBrick(xpos, ypos) {
+				elemBricks.innerHTML+='<img src="brick.png" style="position: fixed; top: '+ypos +'; left: '+xpos +';"/>';
+			}
+			function mkLvl() {
+				elemBricks.innerHTML='';
+				var loop=0;
+				while (loop<numOfBricks) {
+					if (loop==0) {
+						bricksX[loop]=10;
+						bricksY[loop]=10;
+					}
+					else {
+						if (bricksX[loop-1]+brickWidth*2+10<=pageWidth) {
+							bricksX[loop]=bricksX[loop-1]+brickWidth+10;
+							bricksY[loop]=bricksY[loop-1];
+						}
+						else {
+							bricksX[loop]=bricksX[0];
+							bricksY[loop]=bricksY[loop-1]+brickHeight+25;
+						}
+					}
+					mkBrick(bricksX[loop], bricksY[loop]);
+					++loop;
+				}
+			}
+			function genNlvl(bricks) {
+				if (!isNaN(parseInt(bricks))) {
+					try {
+						clearInterval(tmp1);
+						running=false;
+                        paused=false;
+                        started=false;
+					}
+					catch(err) {}
+					numOfBricks=parseInt(bricks);
+					bricksX=[];
+					bricksY=[];
+					origBricksLeft=bricksLeft=numOfBricks;
+					x_speed=origXSpeed;
+					y_speed=origYSpeed;
+					mkLvl();
+                    var lastBkBt=bricksY[bricksY.length-1]+brickHeight;
+                    origY=y_=lastBkBt+(img1y-lastBkBt)/2-img2Height/2;
+                    origX=x_=pageWidth/2-img2Width/2;
+                    mvImg(elemImg2, x_, y_);
+				}
+			}
+			function getURLargs() {
+				var s=location.href;
+				var argStr=s.substring(s.indexOf("?")+1);
+				var args=new keyValPair;
+				var tmp=argStr.split("&");
+				var tmp1=[];
+				var __i__=0;
+				while (__i__<tmp.length) {
+					tmp1=tmp[__i__].split("=");
+					try {args.add(tmp1[0], tmp1[1]);}
+					catch(err) {args.add(tmp1[0], "");}
+					++__i__;
+				}
+				return args;
+			}
+			function hittest() {
+				switch (rectHTest(img1x, img1y, parseInt(elemImg1.width), parseInt(elemImg1.height), x_, y_, img2Width, img2Height, Math.round(Math.abs(x_speed)), Math.abs(y_speed)-1)) {
+					case "t":
+                        if (y_speed>0) {
+                            hitPos=x_+img2Width/2-img1x;
+                            bounceAngle=hitPos/elemImg1.width-0.5;
+                            x_speed=bounceAngle*10;
+                            y_speed*=-1;
+                        }
+						break;
+					case "b":
+                        if (y_speed<0) {
+						  y_speed*=-1;
+                        }
+						break;
+					case "l":
+                        if (x_speed>0) {
+						  x_speed*=-1;
+                        }
+						break;
+					case "r":
+                        if (x_speed<0) {
+						  x_speed*=-1;
+                        }
+						break;
+				}
+			}
+			function removeBrick(brickNum, elem) {
+				bricksX.splice(brickNum, 1);
+				bricksY.splice(brickNum, 1);
+				bricks.removeChild(elem);
+			}
+			function hittest2() {
+				var cBrick;
+				var i=0;
+				while (i<bricksLeft) {
+					cBrick=elemBricks.children[i];
+					switch (rectHTest(bricksX[i], bricksY[i], brickWidth, brickHeight, x_, y_, img2Width, img2Height, Math.round(Math.abs(x_speed)), Math.abs(y_speed)-1)) {
+						case "l":
+							x_speed=Math.abs(x_speed)*-1;
+							removeBrick(i, cBrick);
+							origBricksLeft=--bricksLeft;
+							break;
+						case "r":
+							x_speed=Math.abs(x_speed);
+							removeBrick(i, cBrick);
+							origBricksLeft=--bricksLeft;
+							break;
+						case "t":
+							y_speed=Math.abs(y_speed)*-1;
+							removeBrick(i, cBrick);
+							origBricksLeft=--bricksLeft;
+							break;
+						case "b":
+							y_speed=Math.abs(y_speed);
+							removeBrick(i, cBrick);
+							origBricksLeft=--bricksLeft;
+							break;
+                        case "n":
+                            ++i;
+                            break;
+					}
+				}
+			}
+			function replayGm() {
+				if (location.href.indexOf("noPopup=true")==-1) {
+					if (location.href.indexOf("?")!=-1) {
+						if (location.href.indexOf("?")==location.href.length-1) {
+							location.href+="noPopup=true";
+						}
+						else {
+							location.href+="&noPopup=true";
+						}
+					}
+					else {
+						location.href+="?noPopup=true";
+					}
+				}
+				else {
+					location.reload();
+				}
+			}
+			function updateInfo() {
+				elemGinf.innerHTML='[Lives: ' + lives + '] [Score: ' + (numOfBricks-bricksLeft) + '] [Bricks Left: ' + bricksLeft + '] ' + '[Total Bricks: ' + numOfBricks + ']';
+			}
+            function gameEnd(msg) {
+                gameOver=true;
+                running=false;
+                clearInterval(tmp1);
+                music("stop");
+                alert(msg||"Game has ended.");
+                elemImg1.style.visibility="hidden";
+            }
+			function main() {
+				mvImg(elemImg2, x_, y_);
+				x_+=x_speed;
+				y_+=y_speed;
+				if (x_+img2Width>=pageWidth&&x_speed>0) {
+					x_speed*=-1;
+				}
+				if (x_<=0&&x_speed<0) {
+					x_speed*=-1;
+				}
+				if (y_+img2Height>=pageHeight&&y_speed>0) {
+					y_speed*=-1;
+					origLives=--lives;
+					if (lives>1) {
+						elemMsg.innerHTML='<b>Be careful (You lost a life!)<b>';
+						elemMsg.style.color="red";
+						setTimeout(function () {if (!gameOver) {elemMsg.style.color="blue";elemMsg.innerHTML='Just remember to keep the ball off the ground';}}, 1000);
+					}
+				}
+				if (y_<=0&&y_speed<0) {
+					y_speed*=-1;
+				}
+                if (y_speed==0) {
+                    if (y_+img2Height>=pageHeight) {
+                        y_speed=origYSpeed*-1;
+                    }
+                    else {
+                        y_speed=origYSpeed;
+                    }
+                }
+                if (x_speed==0) {
+                    if (x_+img2Width>=pageWidth) {
+                        x_speed=origXSpeed*-1;
+                    }
+                    else {
+                        x_speed=origXSpeed;
+                    }
+                }
+				if (lives==0) {
+                    gameEnd("Sorry, but you've lost the game...");
+					elemBricks.innerHTML='<input type="button" onClick="replayGm()" value="Replay!"/>';
+					elemImg2.src="sadface.png";
+					elemImg2.width="256";
+					elemImg2.height="256";
+                    mvImg(elemImg2, pageWidth/2-elemImg2.width/2, pageHeight/2-elemImg2.height/2);
+                    elemMsg.style.color="blue";
+					elemMsg.innerHTML='Sorry, but you have lost. Press <input type="button" value="Retry" onClick="replayGm()"/> to retry';
+				}
+				if (bricksLeft==0) {
+                    gameEnd("You won!");
+					elemBricks.innerHTML='<input type="button" onClick="replayGm()" value="Replay!"/>';
+					elemImg2.src="smile.png";
+					elemImg2.width="340";
+					elemImg2.height="256";
+                    mvImg(elemImg2, pageWidth/2-elemImg2.width/2, pageHeight/2-elemImg2.height/2);
+					elemMsg.innerHTML='Congratulations, you won! Want to <input type="button" value="Play again" onClick="replayGm()"/>?';
+				}
+				if (lives==1&&!warned1Life) {
+					elemMsg.innerHTML='<b>Be careful (One life left!)<b>';
+					elemMsg.style.color="red";
+					setTimeout(function () {if (!gameOver) {elemMsg.style.color="blue";elemMsg.innerHTML='<b>Be careful (One life left!)<b>';}}, 3000);
+					setTimeout(function () {if (!gameOver) {elemMsg.style.color="red";elemMsg.innerHTML='<b>Be careful (One life left!)<b>';}}, 6000);
+					setTimeout(function () {if (!gameOver) {elemMsg.style.color="blue";elemMsg.innerHTML='<b>Be careful (One life left!)<b>';}}, 8000);
+					setTimeout(function () {if (!gameOver) {elemMsg.style.color="red";elemMsg.innerHTML='<b>Be careful (One life left!)<b>';}}, 10000);
+					setTimeout(function () {if (!gameOver) {elemMsg.style.color="blue";elemMsg.innerHTML='<b>Be careful (One life left!)<b>';}}, 11000);
+					warned1Life=true;
+				}	
+				hittest();
+				hittest2();
+			}
+			function replayAud(event) {
+				try {
+					event.target.currentTime=0;
+				}
+				catch(err) {}
+				event.target.play();
+			}
+			function music(control) {
+				if (control.toLowerCase()=="start"&&musicPlaying==false) {
+					sndPl.play();
+					sndPl.addEventListener("ended", replayAud);
+					musicPlaying=true;
+				}
+				if (control.toLowerCase()=="stop"&&musicPlaying==true) {
+					sndPl.pause();
+					try {
+						sndPl.currentTime=0;
+					}
+					catch(err) {}
+					sndPl.removeEventListener("ended", replayAud);
+					musicPlaying=false;
+				}
+			}
+			function playAud(file) {
+				try {
+					var _snd_=new Audio(file)
+					_snd_.play();
+				}
+				catch(err) {
+				}
+			}
+			function mouseMoved(event) {
+                mX=event.clientX;
+                mY=event.clientY;
+                if ((mX + elemImg1.width/2 <= pageWidth)&&(mX - elemImg1.width/2 >= 0)&&!gameOver) {
+					mvImg(elemImg1, mX-elemImg1.width/2, elemImg1.style.top);
+					img1x=mX-elemImg1.width/2;
+                }
+			}
+			function keyPress(event) {
+				var __key__;
+				__key__=event.keyCode||event.charCode;
+				keyP=String.fromCharCode(__key__);
+				if (keyP.toLowerCase()=="s") {
+					if (!started) {
+						alert("Game will start in 3 seconds after you click OK...");
+						elemMsg.innerHTML='Game will start in a few moments...';
+						setTimeout(function () {running=true;tmp1=setInterval(run, 10);music("start");elemMsg.innerHTML='Game has started... Press "P" to pause...';}, 3000);
+						tmp2=setInterval(function () {setTimeout(effects, 2000);}, 2000);
+						setInterval(updateInfo, 100);
+						started=true;
+						paused=false;
+					}
+					if (paused) {
+						alert("Game will resume in 3 seconds after you click OK...");
+						elemMsg.innerHTML='Game will resume in a few moments...';
+						setTimeout(function () {running=true;tmp1=setInterval(run, 10);music("start");elemMsg.innerHTML='Game has been resumed... Press "P" to pause...';}, 3000);
+						started=true;
+						paused=false;
+					}
+				}
+				if (keyP.toLowerCase()=="p"&&started&&paused==false&&running) {
+					clearInterval(tmp1);
+					music("stop");
+					elemMsg.innerHTML='Game paused... Press Start/Pause to resume...';
+					alert('Game has been paused... Press Start/Pause to resume..');
+					paused=true;
+					running=false;
+				}
+			}
+			function run() {
+				if (lives!=origLives) {	
+					alert("Hey! Stop cheating!\nYou changed the number of lives from " + origLives + " to " + lives + ".\nYou tried to get away with it but failed!");
+					alert("Whatever... I won't do anything... but I still caught you in the act...");
+					origLives=lives;
+				}
+				else {
+					if (bricksLeft!=origBricksLeft) {
+						alert("Hey! Stop cheating!\nYou changed the number of bricks left from " + origBricksLeft + " to " + bricksLeft + ".\nYou tried to get away with it but failed!");
+						alert("Whatever... I won't do anything... but I still caught you in the act...");
+						origBricksLeft=bricksLeft;
+					}
+				}
+				main();
+			}
+			function s_p() {
+                if (started) {
+                    if (paused) {
+                        e={keyCode:"s".charCodeAt(0)};
+                        keyPress(e);
+                    }
+                    else {
+                        e={keyCode:"p".charCodeAt(0)};
+                        keyPress(e);
+                    }
+                }
+                else {
+                    e={keyCode:"s".charCodeAt(0)};
+                    keyPress(e);
+                }
+            }
+			function load_(msg) {
+				elemImg1=document.getElementById("img1");
+				elemImg2=document.getElementById("img2");
+				elemBricks=document.getElementById("bricks");
+				elemGinf=document.getElementById("gameInfo");
+				elemMsg=document.getElementById("msg");
+				var urlArgs=getURLargs();
+				try {
+					if (urlArgs.get("noPopup")=="true") {
+						msg="0";
+					}
+				}
+				catch(err) {}
+				elemImg1.style.position="fixed";
+				elemImg1.style.bottom=50;
+				elemImg1.style.left=pageWidth/2-elemImg1.width/2;
+				img2Width=elemImg2.width;
+				img2Height=elemImg2.height;
+				elemImg2.style.position="fixed";
+				elemImg2.style.left=pageWidth/2-img2Width/2;
+				img1y=pageHeight-parseInt(elemImg1.style.bottom)-elemImg1.height;
+                img1x=parseInt(elemImg1.style.left);
+				brickWidth=document.getElementById("sampleBrick").width;
+				brickHeight=document.getElementById("sampleBrick").height;
+				document.getElementById("samples").innerHTML='';
+				mkLvl();
+                var lastBkBt=bricksY[bricksY.length-1]+brickHeight;
+                elemImg2.style.top=lastBkBt+(img1y-lastBkBt)/2-img2Height/2;
+                origX=x_=parseInt(elemImg2.style.left);
+				origY=y_=parseInt(elemImg2.style.top);
+				document.body.addEventListener("touchmove", function(event) {
+				  event.preventDefault();
+                  if (event.targetTouches.length == 1) {
+                    var touch = event.targetTouches[0];
+                    mouseMoved({clientX:touch.pageX, clientY:touch.pageY});
+                  }
+                }, false);
+                if (typeof(sndPl)=="undefined") {
+                    sndPl=new Audio("background.mp3");
+                }
+				if ((msg||"1")=="1") {
+					alert("WELCOME!\nThis is the HTML BrickBreaker game test\nBy: Zonggao Li");
+					alert('Instructions: \nUse the touchscreen to control the platform which will keep the ball off the ground and bounce it up.\nDo not ever let the ball touch the ground.\nIf the ball touches the ground '+origLives+' times, you lose!\nTo win, destroy all the bricks by hitting them with the ball.\nPress the Start/Pause button to start/pause the game!\nHave fun!');
+				}
+			}
+		</script>
+	</head>
+	<body onLoad="load_()">
+		<img src="ball.png" id="img2"/>
+		<img src="platform.png" id="img1"/>
+		<p id="bricks"/>
+		<p id="samples" class="samples">
+			<img id="sampleBrick" src="brick.png"/>
+		</p>
+		<p id="gameInfo" class="gameInfo">
+			[Lives: --] [Score: --] [Bricks Left: --] [Total Bricks: --]
+		</p>
+		<p id="msg" class="msg">
+			Press Start/Pause to start game...
+		</p>
+		<input type="button" value="Start/Pause" class="s_pBtn" onclick="s_p()"/>
+	</body>
+</html>

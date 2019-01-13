@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Color Fade Test</title>
+        <script src="rand_js.js"></script>
+        <script>
+            var colors=["green", "red", "white", "green", "orange", "pink", "yellow", "purple", "skyblue", "lightgreen", "lime", "grey", "turquoise", "black", "darkred", "peach", "gold", "indigo", "cyan", "magenta", "yellowgreen", "navy", "limegreen", "blue", "deepskyblue", "brown", "aqua"];
+            var rgbArray=[];
+            function setColor(r, g, b) {
+                document.body.style.background=document.body.style.color="rgb("+r+","+g+","+b+")";
+            }
+            function color2rgb(color) {
+                var rgb;
+                var d=document.createElement("div");
+                d.style.width=d.style.height=0;
+                d.style.color=color;
+                document.body.appendChild(d);
+                rgb=getComputedStyle(d).color.replace(" ", "").replace("rgb(", "").replace(")", "").split(",");
+                document.body.removeChild(d);
+                for (var i=0;i<rgb.length;++i) {
+                    rgb[i]=parseInt(rgb[i]);
+                }
+                return rgb;
+            }
+            function fadeColor() {
+                var cur=0, steps=100, nxtColDelay=0;
+                var thisColor=[255,255,255], nxtColor;
+                while ((nxtColor=getRndItm(rgbArray))==thisColor) {}
+                var r=thisColor[0], g=thisColor[1], b=thisColor[2], rn=nxtColor[0], gn=nxtColor[1], bn=nxtColor[2];
+                var rStep=(rn-r)/steps, gStep=(gn-g)/steps, bStep=(bn-b)/steps;
+                function worker() {
+                    if (cur<steps) {
+                        r+=rStep;
+                        g+=gStep;
+                        b+=bStep;
+                        setColor(Math.round(r), Math.round(g), Math.round(b));
+                        ++cur;
+                        requestAnimationFrame(worker);
+                    }
+                    else {
+                        thisColor=nxtColor;
+                        cur=0;
+                        while ((nxtColor=getRndItm(rgbArray))==thisColor) {}
+                        r=thisColor[0], g=thisColor[1], b=thisColor[2], rn=nxtColor[0], gn=nxtColor[1], bn=nxtColor[2];
+                        rStep=(rn-r)/steps, gStep=(gn-g)/steps, bStep=(bn-b)/steps;
+                        setTimeout(function () {requestAnimationFrame(worker);}, nxtColDelay);
+                    }
+                }
+                requestAnimationFrame(worker);
+            }
+            function load() {
+                for (var i=0;i<colors.length;++i) {
+                    rgbArray.push(color2rgb(colors[i]));
+                }
+                fadeColor();
+            }
+        </script>
+    </head>
+    <body onload="load()"></body>
+</html>

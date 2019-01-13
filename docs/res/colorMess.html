@@ -1,0 +1,49 @@
+<html ondragstart="return false" oncontextmenu="return false">
+    <head>
+        <title>Color Mess</title>
+        <style>
+            body {
+                overflow: hidden;
+                margin: 0;
+            }
+            canvas#c {
+                position: fixed;
+                top: 0;
+                left: 0;
+            }
+        </style>
+        <script src="rand_js.js"></script>
+        <script>
+            var h=window.innerHeight;
+            var w=window.innerWidth;
+            var blkW=16, blkH=12, fps=60, frameInt=~~(1000/fps);
+            var ctx, c;
+            function initCanvas() {
+                c.width=w=window.innerWidth;
+                c.height=h=window.innerHeight;
+                ctx=c.getContext("2d");
+                ctx.clearRect(0, 0, w, h);
+            }
+            function init() {
+                c=document.getElementById("c");
+                (window.onresize=initCanvas)();
+                draw();
+            }
+            function draw() {
+                var st = performance.now();
+                for (var y=0;y<Math.ceil(h/blkH);++y) {
+                    for (var x=0;x<Math.ceil(w/blkW);++x) {
+                        ctx.fillStyle="rgb("+randInt(0, 255)+","+randInt(0, 255)+","+randInt(0, 255)+")";
+                        ctx.fillRect(x*blkW, y*blkH, blkW, blkH);
+                    }
+                }
+                var thisFrameInt=frameInt-Math.round(performance.now()-st);
+                if (thisFrameInt < 0) thisFrameInt=0;
+                setTimeout(draw, thisFrameInt);
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <canvas id="c"></canvas>
+    </body>
+</html>

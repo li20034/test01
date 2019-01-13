@@ -1,0 +1,99 @@
+<html onkeypress="keyP(event)" ondragstart="return false;" oncontextmenu="returnToMain(); return false;">
+    <head>
+        <title>Burn In Detector</title>
+        <style>
+             body {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                font-family: sans-serif;
+                width: 100%;
+                height: 100%;
+                cursor: default;
+                overflow: hidden;
+                margin: 0;
+            }
+            div {
+                margin: 0 5;
+            }
+        </style>
+        <script>
+            var colorList = ["red", "green", "blue", "white", "black", "cyan", "magenta", "yellow"],
+                keyLut = {r: 0, g: 1, b: 2, w: 3, B: 4, c: 5, m: 6, y: 7};
+            var idx = -1;
+            var pageElem = document.documentElement;
+            var requestFs = pageElem.requestFullscreen || pageElem.webkitRequestFullscreen || pageElem.mozRequestFullScreen || pageElem.msRequestFullscreen;
+            var exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            var longPressed = false;
+            var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            var helpTxt, longPressTimer;
+            function init() {
+                helpTxt = document.body.innerHTML;
+                if (!iOS) document.onclick = click;
+                document.body.addEventListener("touchstart", function(e) {
+				    longPressTimer = setTimeout(function() {longPressed = true; returnToMain();}, 1000);
+                }, false);
+                document.body.addEventListener("touchend", function(e) {
+                    if (!longPressed && iOS) click();
+				    clearTimeout(longPressTimer);
+                    longPressed = false;
+                }, false);
+            }
+            function toggleCursor() {
+                document.body.style.cursor = (document.body.style.cursor == "none") ? "default" : "none";
+            }
+            function togglePageFs() {
+                var fsElem = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+                (fsElem) ? exitFs.call(document) : requestFs.call(pageElem);
+            }
+            function returnToMain() {
+                document.body.style.background = "white";
+                document.body.innerHTML = helpTxt;
+                idx = -1;
+            }
+            function keyP(e) {
+                var keyChar = String.fromCharCode(e.which);
+                if (keyChar == 'f') togglePageFs();
+                else if (keyChar == 'h') toggleCursor();
+                else {
+                    var thisIdx = keyLut[keyChar];
+                    if (typeof thisIdx != "undefined") {
+                        document.body.innerHTML = "";
+                        document.body.style.background = colorList[idx = thisIdx];
+                    }
+                    else returnToMain();
+                }
+            }
+            function click() {
+                document.body.innerHTML = "";
+                if (++idx == colorList.length) idx = 0;
+                document.body.style.background = colorList[idx];
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <div>
+            <h1>
+                Press 'r' for red, 'g' for green, 'b' for blue
+            </h1>
+            <h1>
+                'w' yields white, 'B' (Shift+B) yields black
+            </h1>
+            <h1>
+                'c' for cyan, 'm' for magenta, 'y' for yellow
+            </h1>
+            <h1>
+                'f' <a href="javascript:void(0)" onclick="togglePageFs(); event.stopPropagation()">toggles fullscreen</a>, tap/click = next color
+            </h1>
+            <h1>
+                Also, right click/long press to return to this screen (useful on some devices)
+            </h1>
+            <h1>
+                'h' toggles mouse pointer visibility
+            </h1>
+        </div>
+    </body>
+</html>
