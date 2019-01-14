@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>About</title>
+        <style>
+            html, body {
+                font-family: sans-serif;
+            }
+        </style>
+        <script>
+            function initPage() {
+                document.body.style.overflow = "auto"; //override CSS stylesheet overflow property (if any)
+                
+                //the code below is for debugging unusual page load behavior and determining
+                //JavaScript engine differences accross various platforms/OSes and browsers
+                /*console.log("[" + (new Date()) + "] page loaded. took " + performance.now() + " ms"); //is it too slow?
+                document.body.style.background = "darkblue"; //test dynamic CSS
+                document.body.style.color = "darkgray";
+                console.log([98, 97, 115, 101]); //check for JavaScript array behavior
+                console.log(Math.pow(2, 6)); //check if math functions work as expected
+                alert("Page is not complete yet. Please visit when it's done");*/
+            }
+        </script>
+    </head>
+    <body onload="initPage()">
+        <h3>About</h3>
+        <p>Well, OK, there's not much about anything here at the moment</p>
+        <p>But here's a few more of my favorite programs</a>
+        <ul>
+            <li><a href="http://ffmpeg.org">FFmpeg</a>, fast and versatile audio/video encoder</li>
+            <!--
+            <ul>
+                <li>ffmpeg LWkgaW5wdXQucG5nIC12ZiBhbHBoYWV4dHJhY3QsZm9ybWF0PWdyYXkgLWM6diByYXd2aWRlbyBvdXQuYmlu</li>
+            </ul
+            -->
+            <li><a href="https://mh-nexus.de/en/hxd/">HxD</a>, a fantastically simple yet functional hex editor</li>
+            <li><a href="https://github.com/zed-0xff/zsteg">zsteg</a>, a tool for detection of hidden data inside image files</a></li>
+            <li><a href="https://www.imagemagick.org">ImageMagick</a>, a comprehensive set of command line image manipulation tools</a></li>
+            <li><a href="https://www.ccleaner.com">CCleaner</a>, a PC cleaning tool that actually works</li>
+            <li><a href="https://www.nirsoft.net/utils/blue_screen_view.html">BlueScreenView</a>, find out why BSODs are occurring</li>
+            <li><a href="https://www.ccleaner.com/recuva">Recuva</a>, free file undelete tool</li>
+            <li><a href="http://www.nirsoft.net/utils/wireless_key.html">WirelessKeyView</a>, to recover lost WiFi passwords saved by Windows</li>
+            <li><a href="http://www.icsharpcode.net/opensource/sd/Default.aspx">SharpDevelop</a>, shockingly lightweight .NET IDE</li>
+            <li><a href="https://github.com/vgmrips/vgmplay">VGMPlay</a>, for playing legacy video game music rips</li>
+            <li><a href="https://github.com/upx/upx">UPX</a>, ultimate tool for compressing executable files</li>
+        </ul>
+    </body>
+</html>
