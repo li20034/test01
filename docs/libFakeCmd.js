@@ -319,6 +319,7 @@ fakeCmd.processCommand=function (comm) {
                         fakeCmd.writeln("Usage:\n    whois [domain]\nNote: This will redirect you to a website unlike the true whois tool");
                     else
                         location.href = "https://whois.icann.org/en/lookup?name=" + encodeURIComponent(args[0]);
+                    break;
                 default:
                     fakeCmd.writeln('Command "'+c+'" not found');
                     break;
