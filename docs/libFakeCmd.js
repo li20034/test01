@@ -61,7 +61,7 @@ fakeCmd.saveContent=function () {
 fakeCmd.restoreContent=function () {
     cmd.value=fakeCmd.storedContent;
 };
-fakeCmd.strEndsWith=function (s, suffix) {
+fakeCmd.strEndsWith = function (s, suffix) {
     if (s.endsWith)
         return s.endsWith(suffix);
     else {
@@ -71,6 +71,37 @@ fakeCmd.strEndsWith=function (s, suffix) {
         return true;
     }
 }; //used to cope with missing string.endsWith support
+fakeCmd.stringify = function (obj) {
+    if (obj === null)
+        return "null";
+    else if (typeof obj == "undefined")
+        return "undefined";
+    else if (obj instanceof Array) {
+        var pfx = "", out = "[";
+        for (var i = 0; i < obj.length; ++i) {
+            out += pfx + fakeCmd.stringify(obj[i]);
+            pfx = ", ";
+        }
+        return out + "]";
+    }
+    else if (typeof obj == "string")
+        return '"' + obj + '"';
+    else if (typeof obj == "function") {
+        fstr = obj.toString();
+        fname = fstr.substring(fstr.indexOf(" ") + 1, fstr.indexOf("("));
+        return "[Function: " + fname + "]";
+    }
+    else if (obj instanceof Object) {
+        var pfx = "", out = "{";
+        for (var k in obj) {
+            out += pfx + fakeCmd.stringify(k) + ": " + fakeCmd.stringify(obj[k]);
+            pfx = ", ";
+        }
+        return out + "}";
+    }
+    else
+        return obj.toString();
+};
 
 fakeCmd.processCommand=function (comm) {
     var args=argsParse(comm=comm.trim(), fakeCmd.parseSpecialChars), c;
@@ -83,8 +114,11 @@ fakeCmd.processCommand=function (comm) {
                     break;
                 case "jsexec":
                     try {
-                        var tmp=eval(args.join(" "));
-                        if (typeof tmp!="undefined") fakeCmd.writeln(tmp);
+                        var tmp = eval(args.join(" "));
+                        if (typeof tmp == "function")
+                            fakeCmd.writeln(tmp.toString());
+                        else
+                            fakeCmd.writeln(fakeCmd.stringify(tmp));
                     }
                     catch (err) {
                         fakeCmd.writeln("jsexec: An error has occurred during JavaScript execution. Details are below:\n"+err.message);
