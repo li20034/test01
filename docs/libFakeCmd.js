@@ -91,14 +91,14 @@ fakeCmd.stringify = function (obj) {
         fname = fstr.substring(fstr.indexOf(" ") + 1, fstr.indexOf("("));
         return "[Function: " + fname + "]";
     }
-    else if (obj instanceof Object) {
+    /*else if (obj instanceof Object) {
         var pfx = "", out = "{";
         for (var k in obj) {
             out += pfx + fakeCmd.stringify(k) + ": " + fakeCmd.stringify(obj[k]);
             pfx = ", ";
         }
         return out + "}";
-    }
+    }*/
     else
         return obj.toString();
 };
