@@ -1,4 +1,4 @@
-<html onkeypress="if (!fakeCmd.ignoreKeys) keyPress(event);" onkeydown="if (!fakeCmd.ignoreKeys) keyDown(event);" oncontextmenu="return false" ondragstart="return false">
+<html onkeypress="if (!fakeCmd.ignoreKeys && ready) keyPress(event);" onkeydown="if (!fakeCmd.ignoreKeys && ready) keyDown(event);" oncontextmenu="return false;" ondragstart="return false;">
     <head>
         <meta charset="UTF-8">
         <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
@@ -47,17 +47,20 @@
         <script src="res/panic_log.js"></script>
         <script src="libFakeCmd.js"></script>
         <script>
-            var keys={backspace:8, left:37, right:39, up:38, down:40, enter:13};
-            var buffer="";
+            var keys={backspace: 8, left: 37, right: 39, up: 38, down: 40, enter: 13};
+            var buffer = "";
+            var ready = false;
             var cmd;
             var hiddenText;
             function load_() {
-                cmd=document.getElementById("console");
-                (hiddenText=document.getElementById("hiddenTxt")).focus();
+                cmd = document.getElementById("console");
+                (hiddenText = document.getElementById("hiddenTxt")).focus();
                 fakeCmd.init("FakeCmd> ", true);
+                ready = true;
             }
             function keyDown(event) {
-                if (event.ctrlKey||event.altKey) event.preventDefault();
+                if (event.ctrlKey || event.altKey)
+                    event.preventDefault();
                 else {
                     switch (event.which) {
                         case keys.up:
@@ -69,27 +72,27 @@
                         case keys.backspace:
                             event.preventDefault();
                             if (buffer.length) {
-                                cmd.value=cmd.value.substr(0, cmd.value.length-1);
-                                buffer=buffer.substr(0, buffer.length-1);
+                                cmd.value = cmd.value.substr(0, cmd.value.length - 1);
+                                buffer = buffer.substr(0, buffer.length - 1);
                             }
                             break;
                         case keys.enter:
                             event.preventDefault();
                             fakeCmd.processCommand(buffer);
-                            buffer="";
+                            buffer = "";
                             break;
                     }
                 }
             }
             function keyPress(event) {
                 event.preventDefault();
-                buffer+=String.fromCharCode(event.which);
-                cmd.value+=String.fromCharCode(event.which);
+                buffer += String.fromCharCode(event.which);
+                cmd.value += String.fromCharCode(event.which);
             }
         </script>
     </head>
-    <body onload="load_()" onclick="hiddenText.focus()">
-        <input type="text" id="hiddenTxt" onblur="this.focus()">
-        <textarea readonly id="console"></textarea>
+    <body onload="load_()" onclick="if (!fakeCmd.ignoreKeys && ready) hiddenText.focus();">
+        <input type="text" id="hiddenTxt" onblur="if (!fakeCmd.ignoreKeys && ready) this.focus();">
+        <textarea readonly id="console" onfocus="if (fakeCmd.ignoreKeys && ready) this.blur();" autocomplete="off"></textarea>
     </body>
 </html>

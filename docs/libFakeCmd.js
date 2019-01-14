@@ -1,5 +1,5 @@
 function twoDigitFormat(num) {
-    return num<10?"0"+num:num.toString();
+    return num < 10 ? "0" + num : num.toString();
 }
 function argsParse(cmd, specialChars) {
     var quotes = 0, start = -1, lastSpace = -1, lastEscQuote = -1;
@@ -43,7 +43,7 @@ fakeCmd.linux = false;
 fakeCmd.prevIgnoreKeys = fakeCmd.ignoreKeys;
 fakeCmd.verStr = "Fake Command Prompt version 1.0-experimental";
 fakeCmd.init=function (_prompt, _parseSpecialChars) {
-    fakeCmd.storedContent = cmd.value = fakeCmd.prompt=_prompt;
+    fakeCmd.storedContent = cmd.value = fakeCmd.prompt = _prompt;
     fakeCmd.parseSpecialChars = _parseSpecialChars;
     cmd.value = fakeCmd.verStr + "\nType \"help\" and hit enter for help on how to continue.\n" + cmd.value;
 };
@@ -58,13 +58,13 @@ fakeCmd.write = function (txt) {
         cmd.value += "\n" + txt;
         fakeCmd.writtenSincePrompt = true;
     }
-    cmd.scrollTop=cmd.scrollHeight;
+    cmd.scrollTop = cmd.scrollHeight;
 };
 fakeCmd.writeln = function (txt) {
-    fakeCmd.write(txt+"\n");
+    fakeCmd.write(txt + "\n");
 };
 fakeCmd.saveContent = function () {
-    fakeCmd.storedContent=cmd.value;
+    fakeCmd.storedContent = cmd.value;
 };
 fakeCmd.restoreContent = function () {
     cmd.value = fakeCmd.storedContent;
