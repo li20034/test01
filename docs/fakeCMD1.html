@@ -53,7 +53,7 @@
             var cmd;
             var hiddenText;
             function load_() {
-                cmd = document.getElementById("console");
+                (cmd = document.getElementById("console")).value = "";
                 (hiddenText = document.getElementById("hiddenTxt")).focus();
                 fakeCmd.init("FakeCmd> ", true);
                 ready = true;
