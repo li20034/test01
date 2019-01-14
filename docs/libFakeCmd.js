@@ -2,64 +2,72 @@ function twoDigitFormat(num) {
     return num<10?"0"+num:num.toString();
 }
 function argsParse(cmd, specialChars) {
-    var quotes=0, start=-1, lastSpace=-1, lastEscQuote=-1;
-    var args=[];
-    if (specialChars) cmd=cmd.split("\\n").join("\n").split("\\t").join("\t");
-    for (var i=0;i<cmd.length;++i) {
-        if (cmd[i]=='"') {
-            if (!specialChars||cmd[i-1]!="\\"||i==0) {
+    var quotes = 0, start = -1, lastSpace = -1, lastEscQuote = -1;
+    var args = [];
+    if (specialChars)
+        cmd = cmd.split("\\n").join("\n").split("\\t").join("\t");
+    for (var i = 0; i < cmd.length; ++i) {
+        if (cmd[i] == '"') {
+            if (!specialChars || cmd[i - 1] != "\\" || i == 0) {
                 ++quotes;
-                if (quotes%2) start=i;
+                if (quotes % 2)
+                    start = i;
                 else {
-                    specialChars&&lastEscQuote>start&&lastEscQuote<i?args.push(cmd.substring(start+1, i).split('\\"').join('"')):args.push(cmd.substring(start+1, i));
-                    start=-1;
+                    specialChars && lastEscQuote > start && lastEscQuote < i ? args.push(cmd.substring(start + 1, i).split('\\"').join('"')) : args.push(cmd.substring(start + 1, i));
+                    start = -1;
                 }
             }
-            else lastEscQuote=i;
+            else lastEscQuote = i;
         }
-        else if (cmd[i]==" "&&start==-1) {
-            if (cmd[lastSpace+1]!='"') specialChars&&lastEscQuote>lastSpace&&lastEscQuote<i?args.push(cmd.substring(lastSpace+1, i).split('\\"').join('"')):args.push(cmd.substring(lastSpace+1, i));
-            lastSpace=i;
+        else if (cmd[i] == " " && start == -1) {
+            if (cmd[lastSpace + 1] != '"')
+                specialChars && lastEscQuote > lastSpace && lastEscQuote < i ? args.push(cmd.substring(lastSpace + 1, i).split('\\"').join('"')) : args.push(cmd.substring(lastSpace + 1, i));
+            lastSpace = i;
         }
     }
-    if (cmd.length>1&&(cmd[cmd.length-2]=="\\"||cmd[cmd.length-1]!='"')) specialChars&&lastEscQuote>lastSpace?args.push(cmd.substr(lastSpace+1).split('\\"').join('"')):args.push(cmd.substr(lastSpace+1));
-    if (quotes==0&&lastSpace==-1) return specialChars?[cmd.split('\\"').join('"')]:[cmd];
-    else if (quotes%2||start!=-1) return false;
-    else return args;
+    if (cmd.length > 1 && (cmd[cmd.length-2] == "\\" || cmd[cmd.length - 1] != '"'))
+        specialChars && lastEscQuote > lastSpace ? args.push(cmd.substr(lastSpace + 1).split('\\"').join('"')) : args.push(cmd.substr(lastSpace + 1));
+    if (quotes == 0 && lastSpace == -1)
+        return specialChars ? [cmd.split('\\"').join('"')] : [cmd];
+    else if (quotes % 2 || start != -1)
+        return false;
+    else
+        return args;
 }
-var fakeCmd={};
-var writtenSincePrompt=false;
-var startDate = new Date();
-fakeCmd.inputs=[];
-fakeCmd.prevPrompt="FakeCmd> ";
-fakeCmd.ignoreKeys=false;
+var fakeCmd = {};
+fakeCmd.writtenSincePrompt = false;
+fakeCmd.startDate = new Date();
+fakeCmd.prevPrompt = "FakeCmd> ";
+fakeCmd.ignoreKeys = false;
 fakeCmd.linux = false;
-fakeCmd.prevIgnoreKeys=fakeCmd.ignoreKeys;
+fakeCmd.prevIgnoreKeys = fakeCmd.ignoreKeys;
+fakeCmd.verStr = "Fake Command Prompt version 1.0-experimental";
 fakeCmd.init=function (_prompt, _parseSpecialChars) {
-    fakeCmd.storedContent=cmd.value=fakeCmd.prompt=_prompt;
-    fakeCmd.parseSpecialChars=_parseSpecialChars;
-    cmd.value = "Fake Command Prompt version 1.0-experimental\nType \"help\" and hit enter for help on how to continue.\n" + cmd.value;
+    fakeCmd.storedContent = cmd.value = fakeCmd.prompt=_prompt;
+    fakeCmd.parseSpecialChars = _parseSpecialChars;
+    cmd.value = fakeCmd.verStr + "\nType \"help\" and hit enter for help on how to continue.\n" + cmd.value;
 };
-fakeCmd.clear=function () {
-    cmd.value="";
-    writtenSincePrompt=true;
+fakeCmd.clear = function () {
+    cmd.value = "";
+    fakeCmd.writtenSincePrompt = true;
 };
-fakeCmd.write=function (txt) {
-    if (writtenSincePrompt) cmd.value+=txt;
+fakeCmd.write = function (txt) {
+    if (fakeCmd.writtenSincePrompt)
+        cmd.value += txt;
     else {
-        cmd.value+="\n"+txt;
-        writtenSincePrompt=true;
+        cmd.value += "\n" + txt;
+        fakeCmd.writtenSincePrompt = true;
     }
     cmd.scrollTop=cmd.scrollHeight;
 };
-fakeCmd.writeln=function (txt) {
+fakeCmd.writeln = function (txt) {
     fakeCmd.write(txt+"\n");
 };
-fakeCmd.saveContent=function () {
+fakeCmd.saveContent = function () {
     fakeCmd.storedContent=cmd.value;
 };
-fakeCmd.restoreContent=function () {
-    cmd.value=fakeCmd.storedContent;
+fakeCmd.restoreContent = function () {
+    cmd.value = fakeCmd.storedContent;
 };
 fakeCmd.strEndsWith = function (s, suffix) {
     if (s.endsWith)
@@ -98,15 +106,16 @@ fakeCmd.stringify = function (obj) {
             pfx = ", ";
         }
         return out + "}";
-    }*/
+    }*/ //this block can trigger stack overflows on cyclic objects
     else
         return obj.toString();
 };
 
-fakeCmd.processCommand=function (comm) {
-    var args=argsParse(comm=comm.trim(), fakeCmd.parseSpecialChars), c;
-    if (!(args===false)) {
-        if ((c=args.splice(0, 1)[0].trim()).length) {
+fakeCmd.processCommand = function (comm) {
+    var args = argsParse(comm = comm.trim(), fakeCmd.parseSpecialChars), c;
+    if (!(args === false)) {
+        if ((c = args.splice(0, 1)[0].trim()).length) {
+            var handled = true;
             switch (c) {
                 case "clear":
                 case "cls":
@@ -132,17 +141,21 @@ fakeCmd.processCommand=function (comm) {
                     fakeCmd.writeln(args.join(" "));
                     break;
                 case "ver":
-                    fakeCmd.writeln("Fake Command Prompt version 1.0-experimental");
+                    fakeCmd.writeln(fakeCmd.verStr);
                     break;
                 case "date":
                     fakeCmd.writeln(Date());
                     break;
                 case "time":
                     var dt=new Date();
-                    if (dt.getHours()>12) fakeCmd.writeln(twoDigitFormat(dt.getHours()-12)+":"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" PM");
-                    else if (dt.getHours()==12) fakeCmd.writeln("12:"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" PM");
-                    else if (dt.getHours()==0) fakeCmd.writeln("12:"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" AM");
-                    else fakeCmd.writeln(twoDigitFormat(dt.getHours())+":"+twoDigitFormat(dt.getMinutes())+":"+twoDigitFormat(dt.getSeconds())+" PM");
+                    if (dt.getHours() > 12)
+                        fakeCmd.writeln(twoDigitFormat(dt.getHours() - 12) + ":" + twoDigitFormat(dt.getMinutes()) + ":" + twoDigitFormat(dt.getSeconds()) + " PM");
+                    else if (dt.getHours() == 12)
+                        fakeCmd.writeln("12:" + twoDigitFormat(dt.getMinutes()) + ":" + twoDigitFormat(dt.getSeconds()) + " PM");
+                    else if (dt.getHours() == 0)
+                        fakeCmd.writeln("12:" + twoDigitFormat(dt.getMinutes()) + ":" + twoDigitFormat(dt.getSeconds()) + " AM");
+                    else
+                        fakeCmd.writeln(twoDigitFormat(dt.getHours()) + ":" + twoDigitFormat(dt.getMinutes()) + ":" + twoDigitFormat(dt.getSeconds()) + " PM");
                     break;
                 case "goto":
                     window.open(args.join(" "));
@@ -208,122 +221,13 @@ fakeCmd.processCommand=function (comm) {
                     fakeCmd.prevPrompt = fakeCmd.prompt = "FakeCmd> ";
                     cmd.style.fontFamily = "DOSfont";
                     cmd.style.fontSize = "16";
-                    fakeCmd.writeln("Fake Command Prompt version 1.0-experimental");
+                    fakeCmd.writeln(fakeCmd.verStr);
                     fakeCmd.linux = false;
-                    break;
-                case "uname":
-                    if (fakeCmd.linux) {
-                        if (args[0] == "-a")
-                            fakeCmd.writeln("Linux user-pc 3.19.0-80-generic #88~14.04.1-Ubuntu SMP Fri Jan 13 14:54:07 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux");
-                        else
-                            fakeCmd.writeln("Linux");
-                    }
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "whoami":
-                    if (fakeCmd.linux)
-                        fakeCmd.writeln("user");
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "ps":
-                    if (fakeCmd.linux)
-                        fakeCmd.writeln("  PID TTY          TIME CMD\n 1037 pts/2    00:00:00 FakeCmd\n 2031 pts/2    00:00:00 bash\n 9568 pts/2    00:00:00 ps");
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "ls":
-                    if (fakeCmd.linux)
-                        fakeCmd.writeln("Documents  Public  Videos  Downloads  Music  Desktop  Pictures  Templates");
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "ll":
-                    if (fakeCmd.linux) {
-                        fakeCmd.writeln("total 808\n-rw-------  1 user user  38267 Jan 10 22:10 .bash_history");
-                        fakeCmd.writeln("-rw-r--r--  1 user user    220 Apr 16  2016 .bash_logout");
-                        fakeCmd.writeln("-rw-r--r--  1 user user   3637 Apr 16  2016 .bashrc");
-                        fakeCmd.writeln("drwx------ 45 user user   4096 Jan 11 19:00 .cache/");
-                        fakeCmd.writeln("drwx------ 96 user user   4096 Dec 16 22:12 .config/");
-                        fakeCmd.writeln("drwx------  3 root    root      4096 Apr 16  2016 .dbus/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  5 19:14 Desktop/");
-                        fakeCmd.writeln("drwxr-xr-x 12 user user   4096 Oct 14 21:02 Documents/");
-                        fakeCmd.writeln("drwxr-xr-x 23 user user 122880 Jan 10 18:57 Downloads/");
-                        fakeCmd.writeln("drwx------  3 user user   4096 Apr 16  2016 .local/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jun 23  2018 Music/");
-                        fakeCmd.writeln("drwxr-xr-x  3 user user  12288 Jan  7 21:40 Pictures/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Public/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Templates/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  3 19:36 Videos/");
-                        fakeCmd.writeln("-rw-------  1 user user    718 Jan 11 18:49 .Xauthority");
-                        fakeCmd.writeln("-rw-rw-r--  1 user user    130 Jul 20  2016 .xinputrc");
-                        fakeCmd.writeln("-rw-------  1 user user     34 Jan 11 18:49 .xsession-errors");
-                        fakeCmd.writeln("-rw-------  1 user user    138 Jan 10 22:11 .xsession-errors.old");
-                    }
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "man":
-                    if (fakeCmd.linux) {
-                        if (args.length == 0)
-                            fakeCmd.writeln("What manual page do you want?");
-                        else if (args.length == 1) {
-                            fakeCmd.writeln("No manual entry for " + args[0]);
-                            var secN = parseInt(args[0]);
-                            if (secN.toString() == args[0] && 0 < secN && secN < 10)
-                                fakeCmd.writeln("(Alternatively, what manual page do you want from section " + args[0] + "?)");
-                        }
-                        else {
-                            var suffix = "";
-                            var secN = parseInt(args[0]);
-                            if (secN.toString() == args[0] && 0 < secN && secN < 10)
-                                suffix = " in section " + args[0];
-                            else
-                                fakeCmd.writeln("No manual entry for " + args[0]);
-                            
-                            for (var i = 1; i < args.length; ++i)
-                                fakeCmd.writeln("No manual entry for " + args[i] + suffix);
-                        }
-                    }
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "uptime":
-                    if (fakeCmd.linux) {
-                        var now = new Date();
-                        var diff = new Date(now - startDate);
-                        var up = " " + twoDigitFormat(diff.getUTCHours()) + ":" + twoDigitFormat(diff.getUTCMinutes());
-                        if (diff.getUTCHours() == 0)
-                            up = diff.getUTCMinutes() + " min";
-                        
-                        fakeCmd.writeln(twoDigitFormat(now.getHours()) + ":" + twoDigitFormat(now.getMinutes()) + ":" + twoDigitFormat(now.getSeconds()) + " up " + up + ",  2 users,  load average: 0.08, 0.14, 0.14");
-                    }
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "dmesg":
-                    if (fakeCmd.linux)
-                        fakeCmd.writeln(dmesg_log);
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "pwd":
-                    if (fakeCmd.linux)
-                        fakeCmd.writeln("/home/user");
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
-                case "groups":
-                    if (fakeCmd.linux)
-                        fakeCmd.writeln("user adm dialout cdrom sudo dip plugdev lpadmin");
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
                     break;
                 case "3735936685":
                     cmd.value += "\n3735936685 = 0xDEADDEAD";
                 case "bsod":
-                    writtenSincePrompt = fakeCmd.ignoreKeys = true;
+                    fakeCmd.writtenSincePrompt = fakeCmd.ignoreKeys = true;
                     hiddenText.outerHTML = fakeCmd.prompt = "";
                     document.body.style.cursor = cmd.style.cursor = "none";
                     var fsFail = true;
@@ -350,15 +254,6 @@ fakeCmd.processCommand=function (comm) {
                         }
                     }, (fsFail) ? 750 : 4500);
                     break;
-                case "panic":
-                    if (fakeCmd.linux) {
-                        writtenSincePrompt = fakeCmd.ignoreKeys = true;
-                        hiddenText.outerHTML = fakeCmd.prompt = "";
-                        setTimeout(function() { fakeCmd.write(panic_log); }, 500);
-                    }
-                    else
-                        fakeCmd.writeln('Command "'+c+'" not found');
-                    break;
                 case "#deadaf":
                     fakeCmd.ignoreKeys = true;
                     hiddenText.outerHTML = fakeCmd.prompt = "";
@@ -374,12 +269,148 @@ fakeCmd.processCommand=function (comm) {
                         location.href = "https://whois.icann.org/en/lookup?name=" + encodeURIComponent(args[0]);
                     break;
                 default:
-                    fakeCmd.writeln('Command "'+c+'" not found');
+                    handled = false;
                     break;
             }
+            
+            if (fakeCmd.linux && !handled) {
+                switch (c) {
+                    case "uname":
+                        var t = (args.length == 0) ? "" : args[0];
+                        switch (t) {
+                            case "-a":
+                                fakeCmd.writeln("Linux user-pc 3.19.0-80-generic #88~14.04.1-Ubuntu SMP Fri Jan 13 14:54:07 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux");
+                                break;
+                            case "-r":
+                                fakeCmd.writeln("3.19.0-80-generic");
+                                break;
+                            case "-n":
+                                fakeCmd.writeln("user-pc");
+                                break;
+                            case "-v":
+                                fakeCmd.writeln("#88~14.04.1-Ubuntu SMP Fri Jan 13 14:54:07 UTC 2017");
+                                break;
+                            case "-m":
+                            case "-p":
+                            case "-i":
+                                fakeCmd.writeln("x86_64");
+                                break;
+                            case "-o":
+                                fakeCmd.writeln("GNU/Linux");
+                                break;
+                            case "-s":
+                            case "":
+                                fakeCmd.writeln("Linux");
+                                break;
+                            case "--help":
+                                fakeCmd.writeln("Usage: uname [OPTION]...");
+                                fakeCmd.writeln("Print certain system information.  With no OPTION, same as -s.\n");
+                                fakeCmd.writeln("  -a, --all                print all information, in the following order,");
+                                fakeCmd.writeln("                             except omit -p and -i if unknown:");
+                                fakeCmd.writeln("  -s, --kernel-name        print the kernel name");
+                                fakeCmd.writeln("  -n, --nodename           print the network node hostname");
+                                fakeCmd.writeln("  -r, --kernel-release     print the kernel release");
+                                fakeCmd.writeln("  -v, --kernel-version     print the kernel version");
+                                fakeCmd.writeln("  -m, --machine            print the machine hardware name");
+                                fakeCmd.writeln("  -p, --processor          print the processor type or \"unknown\"");
+                                fakeCmd.writeln("  -i, --hardware-platform  print the hardware platform or \"unknown\"");
+                                fakeCmd.writeln("  -o, --operating-system   print the operating system");
+                                fakeCmd.writeln("      --help     display this help and exit");
+                                fakeCmd.writeln("      --version  output version information and exit");
+                                break;
+                            case "--version":
+                                fakeCmd.writeln("uname (" + fakeCmd.verStr + ") 1.2\nSimulates uname from GNU Coreutils 8.21\n\nNot written by Zonggao Li.");
+                                break;
+                            default:
+                                fakeCmd.writeln("uname: invalid option -- '" + t + "'\nTry 'uname --help' for more information.");
+                                break;
+                        }
+                            
+                        break;
+                    case "whoami":
+                        fakeCmd.writeln("user");
+                        break;
+                    case "ps":
+                        fakeCmd.writeln("  PID TTY          TIME CMD\n 1037 pts/2    00:00:00 FakeCmd\n 2031 pts/2    00:00:00 bash\n 9568 pts/2    00:00:00 ps");
+                        break;
+                    case "ls":
+                        fakeCmd.writeln("Documents  Public  Videos  Downloads  Music  Desktop  Pictures  Templates");
+                        break;
+                    case "ll":
+                        fakeCmd.writeln("total 808\n-rw-------  1 user user  38267 Jan 10 22:10 .bash_history");
+                        fakeCmd.writeln("-rw-r--r--  1 user user    220 Apr 16  2016 .bash_logout");
+                        fakeCmd.writeln("-rw-r--r--  1 user user   3637 Apr 16  2016 .bashrc");
+                        fakeCmd.writeln("drwx------ 45 user user   4096 Jan 11 19:00 .cache/");
+                        fakeCmd.writeln("drwx------ 96 user user   4096 Dec 16 22:12 .config/");
+                        fakeCmd.writeln("drwx------  3 root    root      4096 Apr 16  2016 .dbus/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  5 19:14 Desktop/");
+                        fakeCmd.writeln("drwxr-xr-x 12 user user   4096 Oct 14 21:02 Documents/");
+                        fakeCmd.writeln("drwxr-xr-x 23 user user 122880 Jan 10 18:57 Downloads/");
+                        fakeCmd.writeln("drwx------  3 user user   4096 Apr 16  2016 .local/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jun 23  2018 Music/");
+                        fakeCmd.writeln("drwxr-xr-x  3 user user  12288 Jan  7 21:40 Pictures/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Public/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Templates/");
+                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  3 19:36 Videos/");
+                        fakeCmd.writeln("-rw-------  1 user user    718 Jan 11 18:49 .Xauthority");
+                        fakeCmd.writeln("-rw-rw-r--  1 user user    130 Jul 20  2016 .xinputrc");
+                        fakeCmd.writeln("-rw-------  1 user user     34 Jan 11 18:49 .xsession-errors");
+                        fakeCmd.writeln("-rw-------  1 user user    138 Jan 10 22:11 .xsession-errors.old");
+                        break;
+                    case "man":
+                        if (args.length == 0)
+                            fakeCmd.writeln("What manual page do you want?");
+                        else if (args.length == 1) {
+                            fakeCmd.writeln("No manual entry for " + args[0]);
+                            var secN = parseInt(args[0]);
+                            if (secN.toString() == args[0] && 0 < secN && secN < 10)
+                                fakeCmd.writeln("(Alternatively, what manual page do you want from section " + args[0] + "?)");
+                        }
+                        else {
+                            var suffix = "";
+                            var secN = parseInt(args[0]);
+                            if (secN.toString() == args[0] && 0 < secN && secN < 10)
+                                suffix = " in section " + args[0];
+                            else
+                                fakeCmd.writeln("No manual entry for " + args[0]);
+
+                            for (var i = 1; i < args.length; ++i)
+                                fakeCmd.writeln("No manual entry for " + args[i] + suffix);
+                        }
+                        break;
+                    case "uptime":
+                        var now = new Date();
+                        var diff = new Date(now - startDate);
+                        var up = " " + twoDigitFormat(diff.getUTCHours()) + ":" + twoDigitFormat(diff.getUTCMinutes());
+                        if (diff.getUTCHours() == 0)
+                            up = diff.getUTCMinutes() + " min";
+
+                        fakeCmd.writeln(twoDigitFormat(now.getHours()) + ":" + twoDigitFormat(now.getMinutes()) + ":" + twoDigitFormat(now.getSeconds()) + " up " + up + ",  2 users,  load average: 0.08, 0.14, 0.14");
+                        break;
+                    case "dmesg":
+                        fakeCmd.writeln(dmesg_log);
+                        break;
+                    case "pwd":
+                        fakeCmd.writeln("/home/user");
+                        break;
+                    case "groups":
+                        fakeCmd.writeln("user adm dialout cdrom sudo dip plugdev lpadmin");
+                        break;
+                    case "panic":
+                        fakeCmd.writtenSincePrompt = fakeCmd.ignoreKeys = true;
+                        hiddenText.outerHTML = fakeCmd.prompt = "";
+                        setTimeout(function() { fakeCmd.write(panic_log); }, 500);
+                        break;
+                    default:
+                        fakeCmd.writeln(c + ": command not found");
+                        break;
+                }
+            }
+            else if (!handled)
+                fakeCmd.writeln('Command "' + c + '" not found');
         }
     }
     else fakeCmd.writeln("Syntax error: quotes do not match up");
     fakeCmd.write(fakeCmd.prompt);
-    writtenSincePrompt=false;
+    fakeCmd.writtenSincePrompt = false;
 };
