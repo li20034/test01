@@ -314,6 +314,11 @@ fakeCmd.processCommand=function (comm) {
                     cmd.style.color = "#000";
                     setTimeout(function() { location.href = "http://google.ca/search?q=" + encodeURIComponent("#deadaf"); }, 1000);
                     break;
+                case "whois":
+                    if (args.length != 1)
+                        fakeCmd.writeln("Usage:\n    whois [domain]\nNote: This will redirect you to a website unlike the true whois tool");
+                    else
+                        location.href = "https://whois.icann.org/en/lookup?name=" + encodeURIComponent(args[0]);
                 default:
                     fakeCmd.writeln('Command "'+c+'" not found');
                     break;
