@@ -230,8 +230,23 @@ fakeCmd.processCommand=function (comm) {
                     if (fakeCmd.linux) {
                         if (args.length == 0)
                             fakeCmd.writeln("What manual page do you want?");
-                        else
-                            fakeCmd.writeln("No manual entry for " + args[args.length - 1]);
+                        else if (args.length == 1) {
+                            fakeCmd.writeln("No manual entry for " + args[0]);
+                            var secN = parseInt(args[0]);
+                            if (secN.toString() == args[0] && 0 < secN && secN < 10)
+                                fakeCmd.writeln("(Alternatively, what manual page do you want from section " + args[0] + "?)");
+                        }
+                        else {
+                            var suffix = "";
+                            var secN = parseInt(args[0]);
+                            if (secN.toString() == args[0] && 0 < secN && secN < 10)
+                                suffix = " in section " + args[0];
+                            else
+                                fakeCmd.writeln("No manual entry for " + args[0]);
+                            
+                            for (var i = 1; i < args.length; ++i)
+                                fakeCmd.writeln("No manual entry for " + args[i] + suffix);
+                        }
                     }
                     else
                         fakeCmd.writeln('Command "'+c+'" not found');
