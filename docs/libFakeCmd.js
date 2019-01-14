@@ -113,15 +113,19 @@ fakeCmd.processCommand=function (comm) {
                     fakeCmd.clear();
                     break;
                 case "jsexec":
-                    try {
-                        var tmp = eval(args.join(" "));
-                        if (typeof tmp == "function")
-                            fakeCmd.writeln(tmp.toString());
-                        else
-                            fakeCmd.writeln(fakeCmd.stringify(tmp));
-                    }
-                    catch (err) {
-                        fakeCmd.writeln("jsexec: An error has occurred during JavaScript execution. Details are below:\n"+err.message);
+                    if (args.length == 0)
+                        fakeCmd.writeln("jsexec: please provide code for execution as parameter(s)");
+                    else {
+                        try {
+                            var tmp = eval(args.join(" "));
+                            if (typeof tmp == "function")
+                                fakeCmd.writeln(tmp.toString());
+                            else
+                                fakeCmd.writeln(fakeCmd.stringify(tmp));
+                        }
+                        catch (err) {
+                            fakeCmd.writeln("jsexec: An error has occurred during JavaScript execution. Details are below:\n"+err.message);
+                        }
                     }
                     break;
                 case "echo":
