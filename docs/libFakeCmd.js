@@ -110,6 +110,25 @@ fakeCmd.stringify = function (obj) {
     else
         return obj.toString();
 };
+fakeCmd.getProps = function (obj) {
+    var props = [];
+    for (var k in obj)
+        props.push(k);
+    
+    return props;    
+}; //more reliable version of Object.keys(), e.g. works with navigator obj
+fakeCmd.toType = function (obj) {
+    var tmp = ({}).toString.call(obj).split(" ")[1];
+    return tmp.substr(0, tmp.length - 1);
+}; //improved version of typeof obj
+fakeCmd.printProps = function (obj) {
+    var pfx = "", out = "";
+    for (var k in obj) {
+        out += pfx + '"' + k + '": [' + fakeCmd.toType(obj[k]) + "]";
+        pfx = ", ";
+    }
+    fakeCmd.writeln(out);
+}
 
 fakeCmd.processCommand = function (comm) {
     var args = argsParse(comm = comm.trim(), fakeCmd.parseSpecialChars), c;
