@@ -126,7 +126,8 @@ fakeCmd.processCommand = function (comm) {
                         fakeCmd.writeln("jsexec: please provide code for execution as parameter(s)");
                     else {
                         try {
-                            var tmp = eval(args.join(" "));
+                            //var tmp = eval(args.join(" "));
+                            var tmp = eval(comm.substr("jsexec ".length).trim());
                             if (typeof tmp == "function")
                                 fakeCmd.writeln(tmp.toString());
                             else
