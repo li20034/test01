@@ -128,7 +128,48 @@ fakeCmd.printProps = function (obj) {
         pfx = ", ";
     }
     fakeCmd.writeln(out);
-}
+};
+fakeCmd.initAudioCtx = function () {
+    if (!fakeCmd.audioCtx) {
+        var _AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!_AudioContext)
+            return false;
+        
+        fakeCmd.audioCtx = new _AudioContext();
+    }
+    return true;
+};
+fakeCmd.initOsc = function () {
+    if (!fakeCmd.initAudioCtx())
+        return false;
+    fakeCmd.osc = fakeCmd.audioCtx.createOscillator();
+    fakeCmd.gain = fakeCmd.audioCtx.createGain();
+    fakeCmd.gain.connect(fakeCmd.audioCtx.destination);
+    fakeCmd.osc.connect(fakeCmd.gain);
+    return true;
+};
+fakeCmd.beep = function (freq, dur, vol, wave) {
+    if (!fakeCmd.initOsc())
+        return false;
+    var o = fakeCmd.osc;
+    wave = wave || "sine";
+    if (typeof vol == "undefined")
+        vol = 0.5;
+    if (typeof dur == "undefined")
+        dur = 1000;
+    if (!(wave in {"sine": true, "square": true, "sawtooth": true, "triangle": true}))
+        return false;
+    if (freq <= 0 || freq > 20000 || dur <= 0 || isNaN(freq) || isNaN(dur))
+        return false;
+    if (vol <= 0 || vol > 1 || isNaN(vol))
+        return false;
+    o.type = wave;
+    o.frequency.value = freq;
+    fakeCmd.gain.gain.value = vol;
+    o.start(0);
+    setTimeout(function () { o.stop(0); }, dur);
+    return true;
+};
 
 fakeCmd.processCommand = function (comm) {
     var args = argsParse(comm = comm.trim(), fakeCmd.parseSpecialChars), c;
@@ -288,6 +329,14 @@ fakeCmd.processCommand = function (comm) {
                     else
                         location.href = "https://whois.icann.org/en/lookup?name=" + encodeURIComponent(args[0]);
                     break;
+                case "beep":
+                    if (args.length == 0 || args.length > 4)
+                        fakeCmd.writeln("Usage:\n    beep <freq> [dur_ms] [volume] [wave]\nvolume range is 0.0 to 1.0\nfreq range is 0 to 20000\nwave: sine, square, triangle, sawtooth");
+                    else {
+                        if (!fakeCmd.beep.apply(this, args))
+                            fakeCmd.writeln("oops. something went wrong.\nEither this browser does not support web audio or you screwed up.\nRun with no parameters for help.");
+                    }
+                    break;
                 default:
                     handled = false;
                     break;
@@ -323,26 +372,27 @@ fakeCmd.processCommand = function (comm) {
                                 fakeCmd.writeln("Linux");
                                 break;
                             case "--help":
-                                fakeCmd.writeln("Usage: uname [OPTION]...");
-                                fakeCmd.writeln("Print certain system information.  With no OPTION, same as -s.\n");
-                                fakeCmd.writeln("  -a, --all                print all information, in the following order,");
-                                fakeCmd.writeln("                             except omit -p and -i if unknown:");
-                                fakeCmd.writeln("  -s, --kernel-name        print the kernel name");
-                                fakeCmd.writeln("  -n, --nodename           print the network node hostname");
-                                fakeCmd.writeln("  -r, --kernel-release     print the kernel release");
-                                fakeCmd.writeln("  -v, --kernel-version     print the kernel version");
-                                fakeCmd.writeln("  -m, --machine            print the machine hardware name");
-                                fakeCmd.writeln("  -p, --processor          print the processor type or \"unknown\"");
-                                fakeCmd.writeln("  -i, --hardware-platform  print the hardware platform or \"unknown\"");
-                                fakeCmd.writeln("  -o, --operating-system   print the operating system");
-                                fakeCmd.writeln("      --help     display this help and exit");
-                                fakeCmd.writeln("      --version  output version information and exit");
+                                var out = "Usage: uname [OPTION]...\n";
+                                out += "Print certain system information.  With no OPTION, same as -s.\n\n";
+                                out += "  -a, --all                print all information, in the following order,\n";
+                                out += "                             except omit -p and -i if unknown:\n";
+                                out += "  -s, --kernel-name        print the kernel name\n";
+                                out += "  -n, --nodename           print the network node hostname\n";
+                                out += "  -r, --kernel-release     print the kernel release\n";
+                                out += "  -v, --kernel-version     print the kernel version\n";
+                                out += "  -m, --machine            print the machine hardware name\n";
+                                out += "  -p, --processor          print the processor type or \"unknown\"\n";
+                                out += "  -i, --hardware-platform  print the hardware platform or \"unknown\"\n";
+                                out += "  -o, --operating-system   print the operating system\n";
+                                out += "      --help     display this help and exit\n";
+                                out += "      --version  output version information and exit";
+                                fakeCmd.writeln(out);
                                 break;
                             case "--version":
                                 fakeCmd.writeln("uname (" + fakeCmd.verStr + ") 1.2\nSimulates uname from GNU Coreutils 8.21\n\nNot written by Zonggao Li.");
                                 break;
                             default:
-                                fakeCmd.writeln("uname: invalid option -- '" + t + "'\nTry 'uname --help' for more information.");
+                                fakeCmd.writeln("uname: invalid option -- '" + t.replace("-", "") + "'\nTry 'uname --help' for more information.");
                                 break;
                         }
                             
@@ -357,25 +407,26 @@ fakeCmd.processCommand = function (comm) {
                         fakeCmd.writeln("Documents  Public  Videos  Downloads  Music  Desktop  Pictures  Templates");
                         break;
                     case "ll":
-                        fakeCmd.writeln("total 808\n-rw-------  1 user user  38267 Jan 10 22:10 .bash_history");
-                        fakeCmd.writeln("-rw-r--r--  1 user user    220 Apr 16  2016 .bash_logout");
-                        fakeCmd.writeln("-rw-r--r--  1 user user   3637 Apr 16  2016 .bashrc");
-                        fakeCmd.writeln("drwx------ 45 user user   4096 Jan 11 19:00 .cache/");
-                        fakeCmd.writeln("drwx------ 96 user user   4096 Dec 16 22:12 .config/");
-                        fakeCmd.writeln("drwx------  3 root    root      4096 Apr 16  2016 .dbus/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  5 19:14 Desktop/");
-                        fakeCmd.writeln("drwxr-xr-x 12 user user   4096 Oct 14 21:02 Documents/");
-                        fakeCmd.writeln("drwxr-xr-x 23 user user 122880 Jan 10 18:57 Downloads/");
-                        fakeCmd.writeln("drwx------  3 user user   4096 Apr 16  2016 .local/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jun 23  2018 Music/");
-                        fakeCmd.writeln("drwxr-xr-x  3 user user  12288 Jan  7 21:40 Pictures/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Public/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Apr 16  2016 Templates/");
-                        fakeCmd.writeln("drwxr-xr-x  2 user user   4096 Jan  3 19:36 Videos/");
-                        fakeCmd.writeln("-rw-------  1 user user    718 Jan 11 18:49 .Xauthority");
-                        fakeCmd.writeln("-rw-rw-r--  1 user user    130 Jul 20  2016 .xinputrc");
-                        fakeCmd.writeln("-rw-------  1 user user     34 Jan 11 18:49 .xsession-errors");
-                        fakeCmd.writeln("-rw-------  1 user user    138 Jan 10 22:11 .xsession-errors.old");
+                        var out = "total 808\n-rw-------  1 user user  38267 Jan 10 22:10 .bash_history\n";
+                        out += "-rw-r--r--  1 user user    220 Apr 16  2016 .bash_logout\n";
+                        out += "-rw-r--r--  1 user user   3637 Apr 16  2016 .bashrc\n";
+                        out += "drwx------ 45 user user   4096 Jan 11 19:00 .cache/\n";
+                        out += "drwx------ 96 user user   4096 Dec 16 22:12 .config/\n";
+                        out += "drwx------  3 root    root      4096 Apr 16  2016 .dbus/\n";
+                        out += "drwxr-xr-x  2 user user   4096 Jan  5 19:14 Desktop/\n";
+                        out += "drwxr-xr-x 12 user user   4096 Oct 14 21:02 Documents/\n";
+                        out += "drwxr-xr-x 23 user user 122880 Jan 10 18:57 Downloads/\n";
+                        out += "drwx------  3 user user   4096 Apr 16  2016 .local/\n";
+                        out += "drwxr-xr-x  2 user user   4096 Jun 23  2018 Music/\n";
+                        out += "drwxr-xr-x  3 user user  12288 Jan  7 21:40 Pictures/\n";
+                        out += "drwxr-xr-x  2 user user   4096 Apr 16  2016 Public/\n";
+                        out += "drwxr-xr-x  2 user user   4096 Apr 16  2016 Templates/\n";
+                        out += "drwxr-xr-x  2 user user   4096 Jan  3 19:36 Videos/\n";
+                        out += "-rw-------  1 user user    718 Jan 11 18:49 .Xauthority\n";
+                        out += "-rw-rw-r--  1 user user    130 Jul 20  2016 .xinputrc\n";
+                        out += "-rw-------  1 user user     34 Jan 11 18:49 .xsession-errors\n";
+                        out += "-rw-------  1 user user    138 Jan 10 22:11 .xsession-errors.old";
+                        fakeCmd.writeln(out);
                         break;
                     case "man":
                         if (args.length == 0)
@@ -387,15 +438,17 @@ fakeCmd.processCommand = function (comm) {
                                 fakeCmd.writeln("(Alternatively, what manual page do you want from section " + args[0] + "?)");
                         }
                         else {
-                            var suffix = "";
+                            var suffix = "", out = "";
                             var secN = parseInt(args[0]);
                             if (secN.toString() == args[0] && 0 < secN && secN < 10)
                                 suffix = " in section " + args[0];
                             else
-                                fakeCmd.writeln("No manual entry for " + args[0]);
+                                out += "No manual entry for " + args[0] + "\n";
 
                             for (var i = 1; i < args.length; ++i)
-                                fakeCmd.writeln("No manual entry for " + args[i] + suffix);
+                                out += "No manual entry for " + args[i] + suffix + "\n";
+                            
+                            fakeCmd.write(out);
                         }
                         break;
                     case "uptime":
@@ -420,6 +473,45 @@ fakeCmd.processCommand = function (comm) {
                         fakeCmd.writtenSincePrompt = fakeCmd.ignoreKeys = true;
                         hiddenText.outerHTML = fakeCmd.prompt = "";
                         setTimeout(function() { fakeCmd.write(panic_log); }, 500);
+                        break;
+                    case "free":
+                        var t = (args.length == 0) ? "" : args[0];
+                        var showHelp = false, out = "             total       used       free     shared    buffers     cached\n";
+                        switch (t) {
+                            case "":
+                            case "-k":
+                                out += "Mem:       8061580    3388060    4673520     200088     171528    1069012\n";
+                                out += "-/+ buffers/cache:    2147520    5914060\n";
+                                out += "Swap:     12303676          0   12303676";
+                                break;
+                            case "-m":
+                                out += "Mem:          7872       3308       4564        195        167       1043\n";
+                                out += "-/+ buffers/cache:       2097       5775\n";
+                                out += "Swap:        12015          0      12015";
+                                break;
+                            case "-g":
+                                out += "Mem:             7          3          4          0          0          1\n";
+                                out += "-/+ buffers/cache:          2          5\n";
+                                out += "Swap:           11          0         11";
+                                break;
+                            case "-b":
+                                out += "Mem:    8255057920 3469406208 4785651712  204890112  175644672 1094668288\n";
+                                out += "-/+ buffers/cache: 2199093248 6055964672\n";
+                                out += "Swap:   12598964224          0 12598964224";
+                                break;
+                            case "--help":
+                                showHelp = true;
+                                break;
+                            default:
+                                fakeCmd.writeln("free: invalid option -- '" + t.replace("-", "") + "'");
+                                showHelp = true;
+                                break;
+                        }
+                        
+                        if (showHelp)
+                            fakeCmd.writeln("\nUsage:\n free [options]\n\nOptions:\n -b, --bytes         show output in bytes\n -k, --kilo          show output in kilobytes\n -m, --mega          show output in megabytes\n -g, --giga          show output in gigabytes\n     --help     display this help and exit");
+                        else
+                            fakeCmd.writeln(out);
                         break;
                     default:
                         fakeCmd.writeln(c + ": command not found");
