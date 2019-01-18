@@ -334,7 +334,7 @@ fakeCmd.processCommand = function (comm) {
                         fakeCmd.writeln("Usage:\n    beep <freq> [dur_ms] [volume] [wave]\nvolume range is 0.0 to 1.0\nfreq range is 0 to 20000\nwave: sine, square, triangle, sawtooth");
                     else {
                         if (!fakeCmd.beep.apply(this, args))
-                            fakeCmd.writeln("oops. something went wrong.\nEither this browser does not support web audio or you screwed up.\nRun with no parameters for help.");
+                            fakeCmd.writeln("oops. something went wrong.\nEither this browser does not support the Web Audio API or you screwed up.\nRun with no parameters for help.");
                     }
                     break;
                 default:
