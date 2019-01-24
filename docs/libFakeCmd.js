@@ -42,6 +42,7 @@ fakeCmd.ignoreKeys = false;
 fakeCmd.linux = false;
 fakeCmd.prevIgnoreKeys = fakeCmd.ignoreKeys;
 fakeCmd.verStr = "Fake Command Prompt version 1.0-experimental";
+fakeCmd.oscWaves = {"sine": true, "square": true, "sawtooth": true, "triangle": true};
 fakeCmd.init=function (_prompt, _parseSpecialChars) {
     fakeCmd.storedContent = cmd.value = fakeCmd.prompt = _prompt;
     fakeCmd.parseSpecialChars = _parseSpecialChars;
@@ -139,12 +140,25 @@ fakeCmd.initAudioCtx = function () {
     }
     return true;
 };
-fakeCmd.initOsc = function () {
+fakeCmd.initGain = function() {
     if (!fakeCmd.initAudioCtx())
         return false;
+    if (!fakeCmd.gain) {
+        if (!fakeCmd.audioCtx.createGain)
+            return false;
+        
+        fakeCmd.gain = fakeCmd.audioCtx.createGain();
+        fakeCmd.gain.connect(fakeCmd.audioCtx.destination);
+    }
+    return true;
+};
+fakeCmd.initOsc = function () { //oscillators aren't reuseable
+    if (!fakeCmd.initGain())
+        return false;
+    if (!fakeCmd.audioCtx.createOscillator)
+        return false;
+    
     fakeCmd.osc = fakeCmd.audioCtx.createOscillator();
-    fakeCmd.gain = fakeCmd.audioCtx.createGain();
-    fakeCmd.gain.connect(fakeCmd.audioCtx.destination);
     fakeCmd.osc.connect(fakeCmd.gain);
     return true;
 };
@@ -153,11 +167,11 @@ fakeCmd.beep = function (freq, dur, vol, wave) {
         return false;
     var o = fakeCmd.osc;
     wave = wave || "sine";
-    if (typeof vol == "undefined")
+    if (vol == undefined)
         vol = 0.5;
-    if (typeof dur == "undefined")
+    if (dur == undefined)
         dur = 1000;
-    if (!(wave in {"sine": true, "square": true, "sawtooth": true, "triangle": true}))
+    if (!fakeCmd.oscWaves[wave])
         return false;
     if (freq <= 0 || freq > 20000 || dur <= 0 || isNaN(freq) || isNaN(dur))
         return false;
@@ -167,7 +181,7 @@ fakeCmd.beep = function (freq, dur, vol, wave) {
     o.frequency.value = freq;
     fakeCmd.gain.gain.value = vol;
     o.start(0);
-    setTimeout(function () { o.stop(0); }, dur);
+    o.stop(fakeCmd.audioCtx.currentTime + dur / 1000);
     return true;
 };
 
