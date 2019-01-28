@@ -527,6 +527,12 @@ fakeCmd.processCommand = function (comm) {
                         else
                             fakeCmd.writeln(out);
                         break;
+                    case "hostname":
+                        fakeCmd.writeln("user-pc");
+                        break;
+                    case "id":
+                        fakeCmd.writeln("uid=1000(user) gid=1000(user) groups=1000(user),4(adm),20(dialout),24(cdrom),27(sudo),30(dip),46(plugdev),108(lpadmin)");
+                        break;
                     default:
                         fakeCmd.writeln(c + ": command not found");
                         break;
