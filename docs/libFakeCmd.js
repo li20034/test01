@@ -467,7 +467,7 @@ fakeCmd.processCommand = function (comm) {
                         break;
                     case "uptime":
                         var now = new Date();
-                        var diff = new Date(now - startDate);
+                        var diff = new Date(now - fakeCmd.startDate);
                         var up = " " + twoDigitFormat(diff.getUTCHours()) + ":" + twoDigitFormat(diff.getUTCMinutes());
                         if (diff.getUTCHours() == 0)
                             up = diff.getUTCMinutes() + " min";
