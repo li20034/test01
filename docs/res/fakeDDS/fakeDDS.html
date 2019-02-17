@@ -60,10 +60,16 @@
                 if (!audioCtx.createBufferSource)
                     return false;
                 
-                buffer = audioCtx.createBuffer(1, ~~(r * dur), r);
-                fillBuffer();
+                try {
+                    buffer = audioCtx.createBuffer(1, ~~(r * dur), r);
+                }
+                catch (err) {
+                    return false;
+                }
                 
+                fillBuffer();
                 bufSrc = audioCtx.createBufferSource();
+                
                 bufSrc.buffer = buffer;
                 bufSrc.connect(gain);
                 return true;
@@ -163,7 +169,10 @@
                     return;
                 }
                 
-                initBufSrc(dur);
+                if (!initBufSrc(dur)) {
+                    alert("Unable to initialize Web Audio API buffer.\nReasons include:\n    1. Sample rate out of range\n    2. Lack of browser support");
+                    return;
+                }
                 gain.gain.value = vol / 100;
                 bufSrc.start(0);
             }
