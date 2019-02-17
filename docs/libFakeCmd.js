@@ -184,6 +184,14 @@ fakeCmd.beep = function (freq, dur, vol, wave) {
     o.stop(fakeCmd.audioCtx.currentTime + dur / 1000);
     return true;
 };
+fakeCmd.getTxtWidth = function (txt) {
+    if (!fakeCmd.canvas) {
+        fakeCmd.canvas = document.createElement("canvas");
+        fakeCmd.canvasCtx = fakeCmd.canvas.getContext("2d");
+    }
+    fakeCmd.canvasCtx.font = getComputedStyle(cmd).font;
+    return fakeCmd.canvasCtx.measureText(txt).width;
+};
 
 fakeCmd.processCommand = function (comm) {
     var args = argsParse(comm = comm.trim(), fakeCmd.parseSpecialChars), c;

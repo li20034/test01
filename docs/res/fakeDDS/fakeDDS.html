@@ -1,0 +1,212 @@
+<html>
+    <head>
+        <title>Fake DDS</title>
+        <style>
+            textarea#lut {
+                resize: none;
+                width: 100%;
+                height: 96;
+            }
+            canvas#wave {
+                border: 1px solid black;
+            }
+        </style>
+        <script src="luts.js"></script>
+        <script>
+            var elemWave, elemFreq, elemTime, elemLut, elemRate, waveCtx, w, h, f, r, t;
+            var elemDur, elemVol, tword, ratio;
+            var audioCtx, gain, buffer, bufSrc;
+            var lut = new Uint8Array(256);
+            var samples;
+            
+            function initAudioCtx() {
+                if (!audioCtx) {
+                    var _AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!_AudioContext)
+                        return false;
+
+                    audioCtx = new _AudioContext();
+                }
+                return true;
+            }
+            
+            function initGain() {
+                if (!initAudioCtx())
+                    return false;
+                if (!gain) {
+                    if (!audioCtx.createGain)
+                        return false;
+
+                    gain = audioCtx.createGain();
+                    gain.connect(audioCtx.destination);
+                }
+                return true;
+            }
+            
+            function fillBuffer() {
+                var phaccu = 0;
+                var dt = buffer.getChannelData(0);
+                for (var i = 0; i < dt.length; ++i) {
+                    //convert 8 bit unsigned (0 to 255) to float (-1.0 to 1.0)
+                    dt[i] = lut[phaccu >>> 24] * 2 / 255 - 1; //>>> forces logical shift right
+                    phaccu += tword;
+                    phaccu %= 0x100000000; //wrap around 2 ^ 32 (max = 2 ^ 32 - 1)
+                }
+            }
+            
+            function initBufSrc(dur) { //oscillators aren't reuseable
+                if (!initGain())
+                    return false;
+                if (!audioCtx.createBufferSource)
+                    return false;
+                
+                buffer = audioCtx.createBuffer(1, ~~(r * dur), r);
+                fillBuffer();
+                
+                bufSrc = audioCtx.createBufferSource();
+                bufSrc.buffer = buffer;
+                bufSrc.connect(gain);
+                return true;
+            }
+            
+            function _init_() {
+                elemFreq = document.getElementById("freq");
+                elemTime = document.getElementById("time");
+                elemLut = document.getElementById("lut");
+                elemWave = document.getElementById("wave");
+                elemRate = document.getElementById("rate");
+                elemVol = document.getElementById("vol");
+                elemDur = document.getElementById("dur");
+                waveCtx = elemWave.getContext("2d");
+                elemLut.value = sineLut;
+                updateLUT();
+                updateFreqScale();
+                dds();
+                (window.onresize = function() {
+                    elemWave.width = window.innerWidth - 18;
+                    updateFreqScale();
+                    redraw();
+                })();
+            }
+            
+            function redraw() {
+                waveCtx.setTransform(1, 0, 0, 1, 0, 0); //reset transform hacks before clearing
+                waveCtx.clearRect(0, 0, w, h); //erase
+                waveCtx.translate(0.5, 0.5); //enable hack to disable line AA
+                waveCtx.beginPath();
+                waveCtx.strokeStyle = "blue";
+                waveCtx.moveTo(0, ~~(h / 2));
+                waveCtx.lineTo(w, ~~(h / 2));
+                waveCtx.stroke();
+                waveCtx.beginPath();
+                waveCtx.strokeStyle = "red";
+                waveCtx.moveTo(0, 255 - samples[0]);
+                var div = w / (samples.length - 1);
+                for (var i = 1; i < samples.length; ++i)
+                    waveCtx.lineTo(i * div, 255 - samples[i]);
+                waveCtx.stroke();
+            }
+            
+            function dds() {
+                var phaccu = 0;
+                samples = new Uint8Array(~~(r * t / 1000) + 1);
+                for (var i = 0; i < samples.length; ++i) {
+                    samples[i] = lut[phaccu >>> 24]; //>>> forces logical shift right
+                    phaccu += tword;
+                    phaccu %= 0x100000000; //wrap around 2 ^ 32 (max = 2 ^ 32 - 1)
+                }
+            }
+            
+            function updateFreqScale() {
+                w = parseInt(elemWave.width);
+                h = parseInt(elemWave.height);
+                f_ = parseFloat(elemFreq.value);
+                r_ = Math.round(parseFloat(elemRate.value) * 1000);
+                t_ = parseFloat(elemTime.value);
+                
+                if (r_ <= 0 || f_ <= 0 || t_ <= 0 || isNaN(r_) || isNaN(f_) || isNaN(t_)) {
+                    alert("Invalid Parameters");
+                    return;
+                }
+                
+                if (f_ * 2 > r_) {
+                    alert("Nyquist states that frequency must be below half of sample rate!");
+                    return;
+                }
+                
+                f = f_;
+                r = r_;
+                t = t_;
+                ratio = 0x100000000 / r;
+                tword = Math.round(f * ratio);
+            }
+            
+            function updateLUT() {
+                var arr = elemLut.value.split(",");
+                
+                if (arr.length != 256) {
+                    alert("Error, LUT length invalid");
+                    return;
+                }
+                for (var i = 0; i < arr.length; ++i) {
+                    var v = parseInt(arr[i]);
+                    lut[i] = v;
+                }
+            }
+            
+            function playTone() {
+                var vol = parseInt(elemVol.value);
+                var dur = parseFloat(elemDur.value);
+                
+                if (dur <= 0 || vol <= 0 || isNaN(dur) || isNaN(vol)) {
+                    alert("Invalid parameters");
+                    return;
+                }
+                
+                initBufSrc(dur);
+                gain.gain.value = vol / 100;
+                bufSrc.start(0);
+            }
+            
+            function stopTone() {
+                bufSrc.stop(0);
+            }
+        </script>
+    </head>
+    <body onload="_init_()">
+        <h2>Direct Digital Synthesis Simulator</h2>
+        <canvas height="256" id="wave"></canvas>
+        <p>
+            Frequency (Hz): <input type="text" id="freq" value="60">
+        </p>
+        <p>
+            Sample rate (kHz): <input type="text" id="rate" value="32">
+        </p>
+        <p>
+            Time scale (ms): <input type="text" id="time" value="100">
+        </p>
+        <p>
+            Look up table (256 values)
+            <input type="button" value="Sine" onclick="elemLut.value = sineLut;">
+            <input type="button" value="25% Square" onclick="elemLut.value = square25Lut;">
+            <input type="button" value="50% Square" onclick="elemLut.value = square50Lut;">
+            <input type="button" value="Triangle" onclick="elemLut.value = triLut;">
+            <input type="button" value="Sawtooth" onclick="elemLut.value = sawLut;">
+            <input type="button" value="ECG" onclick="elemLut.value = ecgLut;">
+        </p>
+        <textarea autocomplete="off" id="lut"></textarea>
+        <p>
+            <input type="button" value="Update LUT" onclick="updateLUT(); dds(); redraw();">
+            <input type="button" value="Update Frequency/Scale" onclick="updateFreqScale(); dds(); redraw();">
+        </p>
+        <p>
+            <input type="button" value="Play" onclick="playTone();">
+            tone for
+            <input type="text" value="1" id="dur" style="width: 40;">
+            second(s) at
+            <input type="text" value="25" id="vol" style="width: 30;">
+            % volume, then
+            <input type="button" value="stop" onclick="stopTone();">
+        </p>
+    </body>
+</html>
